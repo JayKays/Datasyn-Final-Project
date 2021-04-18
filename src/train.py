@@ -12,8 +12,8 @@ from torch import nn
 from DatasetLoader import DatasetLoader
 from Unet2D import Unet2D
 from evaluation import acc_metric, dice_score
-from plotting import *
-from utils import *
+
+from config import *
 
 def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
     start = time.time()
@@ -69,7 +69,7 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
 
                 running_acc  += acc*dataloader.batch_size
                 running_loss += loss*dataloader.batch_size 
-
+                print(step)
                 if step % 100 == 0:
                     # clear_output(wait=True)
                     print('Current step: {}  Loss: {}  Acc: {}  AllocMem (Mb): {}'.format(step, loss, acc, torch.cuda.memory_allocated()/1024/1024))
@@ -83,29 +83,26 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
             print('{} Loss: {:.4f} Acc: {}'.format(phase, epoch_loss, epoch_acc))
             print('-' * 10)
 
-            train_loss.append(epoch_loss.detach().cpu().item()) if phase=='train' else valid_loss.append(epoch_loss.detach().cpu().item())
+            train_loss.append(epoch_loss) if phase=='train' else valid_loss.append(epoch_loss)
 
     time_elapsed = time.time() - start
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))    
     
     return train_loss, valid_loss    
 
+def batch_to_img(xb, idx):
+    img = np.array(xb[idx,0:3])
+    return img.transpose((1,2,0))
+
+def predb_to_mask(predb, idx):
+    p = torch.functional.F.softmax(predb[idx], 0)
+    return p.argmax(0).cpu()
+
 def main ():
-    #enable if you want to see some plotting
-    visual_debug = True
-
-    #batch size
-    bs = 12
-
-    #epochs
-<<<<<<< HEAD
-    epochs_val = 2
-=======
-    epochs_val = 1
->>>>>>> f4a7e0ecb45926ea6ed94c816442a9d92a50dfbd
-
-    #learning rate
-    learn_rate = 0.01
+    visual_debug = VISUAL_DEBUG
+    bs = BATCH_SIZE
+    epochs_val = NUM_EPOCHS
+    learn_rate = LEARNING_RATE
 
     #sets the matplotlib display backend (most likely not needed)
     #mp.use('TkAgg', force=True)
@@ -122,7 +119,7 @@ def main ():
     valid_data = DataLoader(valid_dataset, batch_size=bs, shuffle=True)
 
     if visual_debug:
-        # plot_loss(train_loss, valid_loss)
+        print("displaying image and ground truth")
         fig, ax = plt.subplots(1,2)
         ax[0].imshow(data.open_as_array(150))
         ax[1].imshow(data.open_mask(150))
@@ -141,16 +138,22 @@ def main ():
     #do some training
     train_loss, valid_loss = train(unet, train_data, valid_data, loss_fn, opt, acc_metric, epochs=epochs_val)
 
+    #plot training and validation losses
+
     #predict on the next train batch (is this fair?)
     xb, yb = next(iter(train_data))
     with torch.no_grad():
         predb = unet(xb.cuda())
 
-    #show the predicted segmentations and loss
+    #show the predicted segmentations
     if visual_debug:
         plot_loss(train_loss, valid_loss)
         plot_visual_results(bs, xb, yb, predb)
         plt.show()
+    
+    file_name = 'save_test'
+    
+    save_result(unet, file_name, accuracy, average_dice, class_dice, msg = msg )
 
 if __name__ == "__main__":
     main()
