@@ -93,6 +93,9 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
     return train_loss, valid_loss    
 
 def main ():
+    torch.manual_seed(0)
+
+    
     #enable if you want to see some plotting
     visual_debug = True
 
@@ -113,7 +116,7 @@ def main ():
     #load the training data
     base_path = BASE_PATH
 
-    train_data, valid_data = make_data_loaders([300,150,0])
+    train_data, valid_data = make_data_loaders((300,150))
 
     xb, yb = next(iter(train_data))
     print (xb.shape, yb.shape)
