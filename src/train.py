@@ -9,11 +9,13 @@ import torch
 from torch.utils.data import Dataset, DataLoader, sampler
 from torch import nn
 
-from DatasetLoader import DatasetLoader
+from DatasetLoader import DatasetLoader, make_data_loaders
 from Unet2D import Unet2D
 from evaluation import acc_metric, dice_score
 from plotting import *
 from utils import *
+
+from config import *
 
 def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
     start = time.time()
@@ -69,7 +71,7 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
 
                 running_acc  += acc*dataloader.batch_size
                 running_loss += loss*dataloader.batch_size 
-
+                print(step)
                 if step % 100 == 0:
                     # clear_output(wait=True)
                     print('Current step: {}  Loss: {}  Acc: {}  AllocMem (Mb): {}'.format(step, loss, acc, torch.cuda.memory_allocated()/1024/1024))
@@ -95,34 +97,21 @@ def main ():
     visual_debug = True
 
     #batch size
-    bs = 12
+    bs = BATCH_SZE
 
     #epochs
-    epochs_val = 1
+    epochs_val = NUM_EPOCHS
 
     #learning rate
-    learn_rate = 0.01
+    learn_rate = LEARNING_RATE
 
     #sets the matplotlib display backend (most likely not needed)
     mp.use('TkAgg', force=True)
 
     #load the training data
-    base_path = Path('datasets/CAMUS_resized')
-    data = DatasetLoader(base_path/'train_gray', 
-                        base_path/'train_gt')
-    print(len(data))
+    base_path = BASE_PATH
 
-    #split the training dataset and initialize the data loaders
-    train_dataset, valid_dataset = torch.utils.data.random_split(data, (300, 150))
-    train_data = DataLoader(train_dataset, batch_size=bs, shuffle=True)
-    valid_data = DataLoader(valid_dataset, batch_size=bs, shuffle=True)
-
-    if visual_debug:
-        # plot_loss(train_loss, valid_loss)
-        fig, ax = plt.subplots(1,2)
-        ax[0].imshow(data.open_as_array(150))
-        ax[1].imshow(data.open_mask(150))
-        plt.show()
+    train_data, valid_data = make_data_loaders([300,150,0])
 
     xb, yb = next(iter(train_data))
     print (xb.shape, yb.shape)
