@@ -22,4 +22,3 @@ def dice_score(predb, yb):
         target = yb.view(batch_size,-1)
 
     return
-

@@ -1,9 +1,12 @@
 import numpy as np
 import torch
+import glob
 
 from pathlib import Path
 from torch.utils.data import Dataset, DataLoader, sampler
 from PIL import Image
+
+from config import *
 
 #load data from a folder
 class DatasetLoader(Dataset):
@@ -57,9 +60,44 @@ class DatasetLoader(Dataset):
         
         return Image.fromarray(arr.astype(np.uint8), 'RGB')
 
+def make_data_loaders(data_splits, with_test = False):
+    # torch.random.seed(1)
 
-def split_data():
-    pass
+    bs = BATCH_SZE
+    bs = 12
 
-def load_train_val_test():
-    pass
+    gt = Path.joinpath(BASE_PATH, 'train_gt')
+    gray = Path.joinpath(BASE_PATH, 'train_gray')
+
+    data = DatasetLoader(gray, gt)
+
+    if len(data_splits) == 2:
+        #Split dataset into training and validation
+        train_data, val_data = torch.utils.data.random_split(data, data_splits)
+
+        train_load = DataLoader(train_data, batch_size = bs, shuffle = True)
+        valid_load = DataLoader(val_data, batch_size = bs, shuffle = True)
+
+        return train_load, valid_load
+
+    elif len(data_splits) == 3:
+        #Split dataset into train, validation and test
+        train_data, val_data, test_data = torch.utils.data.random_split(data, data_splits)
+
+        train_load = DataLoader(train_data, batch_size = bs, shuffle = True)
+        valid_load = DataLoader(val_data, batch_size = bs, shuffle = True)
+        test_load  = DataLoader(test_data, batch_size = bs, shuffle = True)
+
+        return train_load, valid_load, test_load
+
+    return DataLoader(data, batch_size = bs, shuffle = True)
+
+
+
+
+
+
+
+
+
+

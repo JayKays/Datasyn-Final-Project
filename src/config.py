@@ -4,6 +4,7 @@ import albumentations as A
 
 
 NUM_EPOCHS = 1
+<<<<<<< HEAD
 LEARNING_RATE = 0.04
 BATCH_SIZE = 12
 
@@ -24,3 +25,10 @@ PREPROCESS_PARAMS = {
     "sig_space": 15,
 }
 
+=======
+LEARNING_RATE = 0.01
+
+BATCH_SZE = 12
+
+BASE_PATH = Path('datasets/CAMUS_resized')
+>>>>>>> 5014ea639fb1756f5e62e62a9646b6632062cb37
