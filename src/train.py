@@ -11,6 +11,7 @@ from torch import nn
 
 from DatasetLoader import DatasetLoader
 from Unet2D import Unet2D
+from evaluation import acc_metric, dice_score
 
 
 def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
@@ -88,9 +89,6 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
     
     return train_loss, valid_loss    
 
-def acc_metric(predb, yb):
-    return (predb.argmax(dim=1) == yb.cuda()).float().mean()
-
 def batch_to_img(xb, idx):
     img = np.array(xb[idx,0:3])
     return img.transpose((1,2,0))
@@ -116,7 +114,7 @@ def main ():
     mp.use('TkAgg', force=True)
 
     #load the training data
-    base_path = Path('/home/gkiss/Data/CAMUS_resized')
+    base_path = Path('datasets/CAMUS_resized')
     data = DatasetLoader(base_path/'train_gray', 
                         base_path/'train_gt')
     print(len(data))
