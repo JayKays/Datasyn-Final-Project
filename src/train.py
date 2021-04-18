@@ -12,7 +12,8 @@ from torch import nn
 from DatasetLoader import DatasetLoader
 from Unet2D import Unet2D
 from evaluation import acc_metric, dice_score
-
+from plotting import *
+from utils import *
 
 def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
     start = time.time()
@@ -82,20 +83,12 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
             print('{} Loss: {:.4f} Acc: {}'.format(phase, epoch_loss, epoch_acc))
             print('-' * 10)
 
-            train_loss.append(epoch_loss) if phase=='train' else valid_loss.append(epoch_loss)
+            train_loss.append(epoch_loss.detach().cpu().item()) if phase=='train' else valid_loss.append(epoch_loss.detach().cpu().item())
 
     time_elapsed = time.time() - start
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))    
     
     return train_loss, valid_loss    
-
-def batch_to_img(xb, idx):
-    img = np.array(xb[idx,0:3])
-    return img.transpose((1,2,0))
-
-def predb_to_mask(predb, idx):
-    p = torch.functional.F.softmax(predb[idx], 0)
-    return p.argmax(0).cpu()
 
 def main ():
     #enable if you want to see some plotting
@@ -105,7 +98,7 @@ def main ():
     bs = 12
 
     #epochs
-    epochs_val = 50
+    epochs_val = 1
 
     #learning rate
     learn_rate = 0.01
@@ -125,6 +118,7 @@ def main ():
     valid_data = DataLoader(valid_dataset, batch_size=bs, shuffle=True)
 
     if visual_debug:
+        # plot_loss(train_loss, valid_loss)
         fig, ax = plt.subplots(1,2)
         ax[0].imshow(data.open_as_array(150))
         ax[1].imshow(data.open_mask(150))
@@ -143,27 +137,15 @@ def main ():
     #do some training
     train_loss, valid_loss = train(unet, train_data, valid_data, loss_fn, opt, acc_metric, epochs=epochs_val)
 
-    #plot training and validation losses
-    if visual_debug:
-        plt.figure(figsize=(10,8))
-        plt.plot(train_loss, label='Train loss')
-        plt.plot(valid_loss, label='Valid loss')
-        plt.legend()
-        plt.show()
-
     #predict on the next train batch (is this fair?)
     xb, yb = next(iter(train_data))
     with torch.no_grad():
         predb = unet(xb.cuda())
 
-    #show the predicted segmentations
+    #show the predicted segmentations and loss
     if visual_debug:
-        fig, ax = plt.subplots(bs,3, figsize=(15,bs*5))
-        for i in range(bs):
-            ax[i,0].imshow(batch_to_img(xb,i))
-            ax[i,1].imshow(yb[i])
-            ax[i,2].imshow(predb_to_mask(predb, i))
-
+        plot_loss(train_loss, valid_loss)
+        plot_visual_results(bs, xb, yb, predb)
         plt.show()
 
 if __name__ == "__main__":
