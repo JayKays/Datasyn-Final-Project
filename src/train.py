@@ -100,13 +100,15 @@ def main ():
     bs = BATCH_SZE
 
     #epochs
+
     epochs_val = NUM_EPOCHS
+
 
     #learning rate
     learn_rate = LEARNING_RATE
 
     #sets the matplotlib display backend (most likely not needed)
-    mp.use('TkAgg', force=True)
+    #mp.use('TkAgg', force=True)
 
     #load the training data
     base_path = BASE_PATH
