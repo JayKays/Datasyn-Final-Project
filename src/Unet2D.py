@@ -18,7 +18,7 @@ class Unet2D(nn.Module):
         conv1 = self.conv1(x)
         conv2 = self.conv2(conv1)
         conv3 = self.conv3(conv2)
-
+        
         #upsample
         upconv3 = self.upconv3(conv3)
         upconv2 = self.upconv2(torch.cat([upconv3, conv2], 1))

@@ -11,7 +11,7 @@ from torch import nn
 
 from DatasetLoader import DatasetLoader, make_data_loaders
 from Unet2D import Unet2D
-from evaluation import acc_metric, dice_score
+from evaluation import acc_metric, batch_dice, dice
 from plotting import *
 from utils import *
 
@@ -39,6 +39,7 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
 
             running_loss = 0.0
             running_acc = 0.0
+            running_dice = 0.0
 
             step = 0
 
@@ -68,21 +69,26 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
 
                 # stats - whatever is the phase
                 acc = acc_fn(outputs, y)
+                tot_dice, batch_score = batch_dice(outputs, y) 
 
                 running_acc  += acc*dataloader.batch_size
                 running_loss += loss*dataloader.batch_size 
-                print(step)
+                running_dice += tot_dice
+
+                # print(step)
                 if step % 100 == 0:
                     # clear_output(wait=True)
                     print('Current step: {}  Loss: {}  Acc: {}  AllocMem (Mb): {}'.format(step, loss, acc, torch.cuda.memory_allocated()/1024/1024))
+                    
                     # print(torch.cuda.memory_summary())
 
             epoch_loss = running_loss / len(dataloader.dataset)
             epoch_acc = running_acc / len(dataloader.dataset)
+            epoch_dice = running_dice / len(dataloader.dataset)
 
             print('Epoch {}/{}'.format(epoch, epochs - 1))
             print('-' * 10)
-            print('{} Loss: {:.4f} Acc: {}'.format(phase, epoch_loss, epoch_acc))
+            print('{} Loss: {:.4f} Acc: {:.4f} DICE: {:.4f}'.format(phase, epoch_loss, epoch_acc, epoch_dice))
             print('-' * 10)
 
             train_loss.append(epoch_loss.detach().cpu().item()) if phase=='train' else valid_loss.append(epoch_loss.detach().cpu().item())
@@ -95,7 +101,7 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
 def main ():
     torch.manual_seed(0)
 
-    
+
     #enable if you want to see some plotting
     visual_debug = True
 
@@ -103,9 +109,8 @@ def main ():
     bs = BATCH_SZE
 
     #epochs
-
-    epochs_val = NUM_EPOCHS
-
+    # epochs_val = NUM_EPOCHS
+    epochs_val = 4
 
     #learning rate
     learn_rate = LEARNING_RATE
@@ -119,7 +124,15 @@ def main ():
     train_data, valid_data = make_data_loaders((300,150))
 
     xb, yb = next(iter(train_data))
-    print (xb.shape, yb.shape)
+    # print (xb.shape, yb.shape)
+    # print(batch_dice(xb, yb))
+    # print(acc_metric(xb, yb))
+
+    # print(yb[0,:,:].count_nonzero())
+    # print(yb[0,196:202,92:98])
+    # plt.imshow(xb[0,0,:,:])
+    # plt.show()
+    
 
     # build the Unet2D with one channel as input and 2 channels as output
     unet = Unet2D(1,2)
