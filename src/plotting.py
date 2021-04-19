@@ -15,7 +15,6 @@ def plot_loss(train_loss, valid_loss):
     plt.plot(train_loss, label='Train loss')
     plt.plot(valid_loss, label='Valid loss')
     plt.legend()
-    # plt.show()
 
 def plot_visual_results(bs, xb, yb, predb):
     num_img = 3

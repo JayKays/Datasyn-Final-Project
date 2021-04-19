@@ -11,9 +11,15 @@ from torch import nn
 
 from DatasetLoader import DatasetLoader, make_data_loaders
 from Unet2D import Unet2D
+<<<<<<< HEAD
 from evaluation import acc_metric, batch_dice, dice
 from plotting import *
 from utils import *
+=======
+from evaluation import acc_metric, dice_score
+
+from config import *
+>>>>>>> 9e1f39638ada79d99e04bb0c54dbc1042df71279
 
 from config import *
 
@@ -91,13 +97,27 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
             print('{} Loss: {:.4f} Acc: {:.4f} DICE: {:.4f}'.format(phase, epoch_loss, epoch_acc, epoch_dice))
             print('-' * 10)
 
-            train_loss.append(epoch_loss.detach().cpu().item()) if phase=='train' else valid_loss.append(epoch_loss.detach().cpu().item())
+            train_loss.append(epoch_loss) if phase=='train' else valid_loss.append(epoch_loss)
 
     time_elapsed = time.time() - start
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))    
     
     return train_loss, valid_loss    
 
+<<<<<<< HEAD
+def batch_to_img(xb, idx):
+    img = np.array(xb[idx,0:3])
+    return img.transpose((1,2,0))
+
+def predb_to_mask(predb, idx):
+    p = torch.functional.F.softmax(predb[idx], 0)
+    return p.argmax(0).cpu()
+
+def main ():
+    visual_debug = VISUAL_DEBUG
+    bs = BATCH_SIZE
+    epochs_val = NUM_EPOCHS
+=======
 def main ():
     torch.manual_seed(0)
 
@@ -113,6 +133,7 @@ def main ():
     epochs_val = 4
 
     #learning rate
+>>>>>>> 5014ea639fb1756f5e62e62a9646b6632062cb37
     learn_rate = LEARNING_RATE
 
     #sets the matplotlib display backend (most likely not needed)
@@ -121,7 +142,16 @@ def main ():
     #load the training data
     base_path = BASE_PATH
 
+<<<<<<< HEAD
+    if visual_debug:
+        print("displaying image and ground truth")
+        fig, ax = plt.subplots(1,2)
+        ax[0].imshow(data.open_as_array(150))
+        ax[1].imshow(data.open_mask(150))
+        plt.show()
+=======
     train_data, valid_data = make_data_loaders((300,150))
+>>>>>>> 5014ea639fb1756f5e62e62a9646b6632062cb37
 
     xb, yb = next(iter(train_data))
     # print (xb.shape, yb.shape)
@@ -144,16 +174,22 @@ def main ():
     #do some training
     train_loss, valid_loss = train(unet, train_data, valid_data, loss_fn, opt, acc_metric, epochs=epochs_val)
 
+    #plot training and validation losses
+
     #predict on the next train batch (is this fair?)
     xb, yb = next(iter(train_data))
     with torch.no_grad():
         predb = unet(xb.cuda())
 
-    #show the predicted segmentations and loss
+    #show the predicted segmentations
     if visual_debug:
         plot_loss(train_loss, valid_loss)
         plot_visual_results(bs, xb, yb, predb)
         plt.show()
+    
+    file_name = 'save_test'
+    
+    save_result(unet, file_name, accuracy, average_dice, class_dice, msg = msg )
 
 if __name__ == "__main__":
     main()
