@@ -63,7 +63,7 @@ class DatasetLoader(Dataset):
 def make_data_loaders(data_splits, with_test = False):
     # torch.random.seed(1)
 
-    bs = BATCH_SZE
+    bs = BATCH_SIZE
     bs = 12
 
     gt = Path.joinpath(BASE_PATH, 'train_gt')

@@ -1,6 +1,8 @@
 import numpy as np
 import torch
-
+from config import *
+import os
+import glob
 
 def to_cuda(elements):
     """
@@ -13,17 +15,24 @@ def to_cuda(elements):
         return elements.cuda()
     return elements
 
-def save_result(model, model_name, accuracy, average_dice, class_dice, msg=None):
-    # Save performance
-    now = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-    with open(MODEL_PATH + "performance.txt", "a") as text_file:
-        print(f"data:{now}\ndataset:{DATA_PARAMS['dataset']}\n"
-              f"epoch:{EPOCHS}\nimage_resolution:{DATA_PARAMS['image_resolution']}\n" 
-              f"pre_proc:{PREP_STEPS}\nacc:{round(accuracy, 4)}\n"
-              f"avg_dice:{round(average_dice, 4)}\nclass_dice_scores:{str(class_dice)}\n", 
-              f"description:{msg}",
-              file = text_file)
-
+def save_model(model, epoch, loss, optimizer = None):
+    model_dict = {}
+    model_dict['model'] = model.state_dict()
+    model_dict['epoch'] = epoch
+    model_dict['loss'] = loss
+    if optimizer != None:
+        model_dict['optimizer'] = optimizer.state_dict()
+        
+    save_dir = os.path.join(SAVE_DIR, f'epoch_{epoch}.pth')
     # Save model
-    torch.save(model.state_dict(), MODEL_PATH + model_name+'.pt')
-    print(f"Model state has been saved in {MODEL_PATH+model_name}")
+    torch.save(model_dict, save_dir)
+
+def check_for_checkpoints():
+    if not glob.glob(SAVE_DIR+'/*'):
+        return False
+    return True
+
+def newest_checkpoint():
+    files = glob.glob(SAVE_DIR+'/*')
+    newest_model = max(files, key = os.path.getctime)
+    return newest_model

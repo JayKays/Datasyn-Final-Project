@@ -17,7 +17,7 @@ from utils import *
 
 from config import *
 
-def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
+def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, start_epoch=0, epochs=1):
     start = time.time()
     model.cuda()
 
@@ -25,7 +25,7 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
 
     best_acc = 0.0
 
-    for epoch in range(epochs):
+    for epoch in range(start_epoch, epochs):
         print('Epoch {}/{}'.format(epoch, epochs - 1))
         print('-' * 10)
 
@@ -92,6 +92,11 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
             print('-' * 10)
 
             train_loss.append(epoch_loss) if phase=='train' else valid_loss.append(epoch_loss)
+        if SAVE:
+            print(f"saving model with epoch={epoch}, loss={loss}...")
+            save_model(model, epoch, epoch_loss)
+            print("...save complete.")
+            
 
     time_elapsed = time.time() - start
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))    
@@ -130,8 +135,24 @@ def main ():
     loss_fn = nn.CrossEntropyLoss()
     opt = torch.optim.Adam(unet.parameters(), lr=learn_rate)
 
+    start_epoch = 0
+    if LOAD and check_for_checkpoints():
+        newest_file = newest_checkpoint()
+        newest_model = torch.load(newest_file)
+        unet.load_state_dict(newest_model["model"])
+        opt.load_state_dict(newest_model["optimizer"])
+        for state in opt.state.values():
+            for k, v in state.items():
+                if isinstance(v, torch.Tensor):
+                    state[k] = v.cuda()
+
+        start_epoch = newest_model["epoch"]
+        start_loss = newest_model["loss"]
+        start_epoch += 1
+        print(f"...load complete. starting at epoch {start_epoch}")
+
     #do some training
-    train_loss, valid_loss = train(unet, train_data, valid_data, loss_fn, opt, acc_metric, epochs=epochs_val)
+    train_loss, valid_loss = train(unet, train_data, valid_data, loss_fn, opt, acc_metric, start_epoch, epochs=epochs_val)
 
     #plot training and validation losses
 
@@ -145,10 +166,6 @@ def main ():
         plot_loss(train_loss, valid_loss)
         plot_visual_results(bs, xb, yb, predb)
         plt.show()
-    
-    file_name = 'save_test'
-    
-    save_result(unet, file_name, accuracy, average_dice, class_dice, msg = msg )
 
 if __name__ == "__main__":
     main()
