@@ -63,14 +63,14 @@ class DatasetLoader(Dataset):
 def make_data_loaders(data_splits, with_test = False):
     # torch.random.seed(1)
 
-    bs = BATCH_SZE
+    bs = BATCH_SIZE
     bs = 12
 
     gt = Path.joinpath(BASE_PATH, 'train_gt')
     gray = Path.joinpath(BASE_PATH, 'train_gray')
 
     data = DatasetLoader(gray, gt)
-
+    
     if len(data_splits) == 2:
         #Split dataset into training and validation
         train_data, val_data = torch.utils.data.random_split(data, data_splits)

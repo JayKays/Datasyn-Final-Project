@@ -11,10 +11,9 @@ from torch import nn
 
 from DatasetLoader import DatasetLoader, make_data_loaders
 from Unet2D import Unet2D
-from evaluation import acc_metric, batch_dice, dice
+from evaluation import acc_metric, dice
 from plotting import *
 from utils import *
-
 from config import *
 
 def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
@@ -24,10 +23,12 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
     train_loss, valid_loss = [], []
 
     best_acc = 0.0
-
+    
     for epoch in range(epochs):
-        print('Epoch {}/{}'.format(epoch, epochs - 1))
+        print('Epoch {}/{}'.format(epoch+1, epochs))
         print('-' * 10)
+
+        epoch_start = time.time()
 
         for phase in ['train', 'valid']:
             if phase == 'train':
@@ -69,34 +70,45 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
 
                 # stats - whatever is the phase
                 acc = acc_fn(outputs, y)
-                tot_dice, batch_score = batch_dice(outputs, y) 
+                tot_dice, batch_score = dice2(outputs, y) 
 
                 running_acc  += acc*dataloader.batch_size
                 running_loss += loss*dataloader.batch_size 
                 running_dice += tot_dice
 
+                # print(tot_dice)
+
                 # print(step)
                 if step % 100 == 0:
                     # clear_output(wait=True)
                     print('Current step: {}  Loss: {}  Acc: {}  AllocMem (Mb): {}'.format(step, loss, acc, torch.cuda.memory_allocated()/1024/1024))
-                    
                     # print(torch.cuda.memory_summary())
 
             epoch_loss = running_loss / len(dataloader.dataset)
             epoch_acc = running_acc / len(dataloader.dataset)
-            epoch_dice = running_dice / len(dataloader.dataset)
+            epoch_dice = running_dice / len(dataloader)
 
-            print('Epoch {}/{}'.format(epoch, epochs - 1))
-            print('-' * 10)
+            epoch_time = time.time() - epoch_start
+
+            #ETA calculation
+            avg_epoch_time = (time.time() - start) / (epoch + 1)
+            eta = (epochs - (epoch + 1))*avg_epoch_time
+
+
+            # print('Epoch {}/{}'.format(epoch+1, epochs))
+            # print('-' * 10)
             print('{} Loss: {:.4f} Acc: {:.4f} DICE: {:.4f}'.format(phase, epoch_loss, epoch_acc, epoch_dice))
             print('-' * 10)
-
             train_loss.append(epoch_loss) if phase=='train' else valid_loss.append(epoch_loss)
+
+        print('Epoch time: {:.0f}m {:.0f}s'.format(epoch_time // 60, epoch_time % 60), end='\t') 
+        print('ETA: {:.0f}m {:.0f}s'.format(eta // 60, eta % 60))
+        print('-' * 60)
 
     time_elapsed = time.time() - start
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))    
     
-    return train_loss, valid_loss    
+    return [x.detach().cpu().item() for x in train_loss], [x.detach().cpu().item() for x in valid_loss]
 
 def main ():
     visual_debug = VISUAL_DEBUG
@@ -146,9 +158,9 @@ def main ():
         plot_visual_results(bs, xb, yb, predb)
         plt.show()
     
-    file_name = 'save_test'
+    # file_name = 'save_test'
     
-    save_result(unet, file_name, accuracy, average_dice, class_dice, msg = msg )
+    # save_result(unet, file_name, accuracy, average_dice, class_dice, msg = msg )
 
 if __name__ == "__main__":
     main()
