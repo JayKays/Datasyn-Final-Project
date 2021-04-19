@@ -99,6 +99,7 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
             # print('-' * 10)
             print('{} Loss: {:.4f} Acc: {:.4f} DICE: {:.4f}'.format(phase, epoch_loss, epoch_acc, epoch_dice))
             print('-' * 10)
+            
             train_loss.append(epoch_loss) if phase=='train' else valid_loss.append(epoch_loss)
 
         print('Epoch time: {:.0f}m {:.0f}s'.format(epoch_time // 60, epoch_time % 60), end='\t') 

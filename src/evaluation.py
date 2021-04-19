@@ -74,7 +74,7 @@ def dice(predb, yb, smooth = 1e-4):
 
             scores[b,c] = dice_score
     
-    class_dices = scores.mean(dim = 1)
+    class_dices = scores.mean(dim = 0)
     tot_dice = scores.mean()
 
     return tot_dice, class_dices
