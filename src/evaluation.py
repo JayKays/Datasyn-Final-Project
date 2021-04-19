@@ -25,7 +25,6 @@ def batch_dice(predb, yb):
         pred = predb[:,c,:,:].view(batch_size,-1)
         target = yb.view(batch_size,-1)
 
-<<<<<<< HEAD
         batch_scores = dice(pred, target)
 
         class_score = batch_scores.mean()
@@ -37,6 +36,3 @@ def batch_dice(predb, yb):
 
     return total_score, class_scores
 
-=======
-    return
->>>>>>> 9e1f39638ada79d99e04bb0c54dbc1042df71279

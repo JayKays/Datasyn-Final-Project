@@ -11,15 +11,9 @@ from torch import nn
 
 from DatasetLoader import DatasetLoader, make_data_loaders
 from Unet2D import Unet2D
-<<<<<<< HEAD
 from evaluation import acc_metric, batch_dice, dice
 from plotting import *
 from utils import *
-=======
-from evaluation import acc_metric, dice_score
-
-from config import *
->>>>>>> 9e1f39638ada79d99e04bb0c54dbc1042df71279
 
 from config import *
 
@@ -104,36 +98,10 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, epochs=1):
     
     return train_loss, valid_loss    
 
-<<<<<<< HEAD
-def batch_to_img(xb, idx):
-    img = np.array(xb[idx,0:3])
-    return img.transpose((1,2,0))
-
-def predb_to_mask(predb, idx):
-    p = torch.functional.F.softmax(predb[idx], 0)
-    return p.argmax(0).cpu()
-
 def main ():
     visual_debug = VISUAL_DEBUG
     bs = BATCH_SIZE
     epochs_val = NUM_EPOCHS
-=======
-def main ():
-    torch.manual_seed(0)
-
-
-    #enable if you want to see some plotting
-    visual_debug = True
-
-    #batch size
-    bs = BATCH_SZE
-
-    #epochs
-    # epochs_val = NUM_EPOCHS
-    epochs_val = 4
-
-    #learning rate
->>>>>>> 5014ea639fb1756f5e62e62a9646b6632062cb37
     learn_rate = LEARNING_RATE
 
     #sets the matplotlib display backend (most likely not needed)
@@ -142,16 +110,7 @@ def main ():
     #load the training data
     base_path = BASE_PATH
 
-<<<<<<< HEAD
-    if visual_debug:
-        print("displaying image and ground truth")
-        fig, ax = plt.subplots(1,2)
-        ax[0].imshow(data.open_as_array(150))
-        ax[1].imshow(data.open_mask(150))
-        plt.show()
-=======
     train_data, valid_data = make_data_loaders((300,150))
->>>>>>> 5014ea639fb1756f5e62e62a9646b6632062cb37
 
     xb, yb = next(iter(train_data))
     # print (xb.shape, yb.shape)
