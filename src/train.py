@@ -91,7 +91,6 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, start_epoch=0, 
             epoch_time = time.time() - epoch_start
 
             #ETA calculation
-            print(start_epoch, epoch)
             avg_epoch_time = (time.time() - start) / (epoch - start_epoch + 1)
             eta = (epochs - (epoch + 1))*avg_epoch_time
 
@@ -116,4 +115,7 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, start_epoch=0, 
     time_elapsed = time.time() - start
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))    
     
-    return [x.detach().cpu().item() for x in train_loss], [x.detach().cpu().item() for x in valid_loss]
+    cpu_train_loss = [x.detach().cpu().item() for x in train_loss]
+    cpu_valid_loss = [x.detach().cpu().item() for x in valid_loss]
+
+    return cpu_train_loss, cpu_valid_loss

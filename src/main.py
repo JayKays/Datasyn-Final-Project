@@ -52,7 +52,7 @@ def main ():
         start_loss = newest_model["loss"]
         # start_epoch += 1
         print(f"...load complete. starting at epoch {start_epoch}")
-    print(f"start Loss = {start_loss:.4f}")
+    # print(f"start Loss = {start_loss:.4f}")
 
     #do some training
     train_loss, valid_loss = train(unet, train_data, valid_data, loss_fn, opt, acc_metric, start_epoch, epochs=epochs_val)

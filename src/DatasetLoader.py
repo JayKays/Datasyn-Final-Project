@@ -70,7 +70,7 @@ def make_data_loaders(data_splits, with_test = False):
     gray = Path.joinpath(BASE_PATH, 'train_gray')
 
     data = DatasetLoader(gray, gt)
-    
+
     if len(data_splits) == 2:
         #Split dataset into training and validation
         train_data, val_data = torch.utils.data.random_split(data, data_splits)
@@ -84,9 +84,9 @@ def make_data_loaders(data_splits, with_test = False):
         #Split dataset into train, validation and test
         train_data, val_data, test_data = torch.utils.data.random_split(data, data_splits)
 
-        train_load = DataLoader(train_data, batch_size = bs, shuffle = True)
-        valid_load = DataLoader(val_data, batch_size = bs, shuffle = True)
-        test_load  = DataLoader(test_data, batch_size = bs, shuffle = True)
+        train_load = DataLoader(train_data, batch_size = bs, shuffle = True, num_workers=1)
+        valid_load = DataLoader(val_data, batch_size = bs, shuffle = True, num_workers=1)
+        test_load  = DataLoader(test_data, batch_size = bs, shuffle = True, num_workers=1)
 
         return train_load, valid_load, test_load
 
