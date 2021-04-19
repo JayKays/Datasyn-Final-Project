@@ -70,7 +70,7 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, start_epoch=0, 
 
                 # stats - whatever is the phase
                 acc = acc_fn(outputs, y)
-                tot_dice, batch_score = dice2(outputs, y) 
+                tot_dice, batch_score = dice(outputs, y) 
 
                 running_acc  += acc*dataloader.batch_size
                 running_loss += loss*dataloader.batch_size 
@@ -91,7 +91,8 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, start_epoch=0, 
             epoch_time = time.time() - epoch_start
 
             #ETA calculation
-            avg_epoch_time = (time.time() - start) / (epoch + 1)
+            print(start_epoch, epoch)
+            avg_epoch_time = (time.time() - start) / (epoch - start_epoch + 1)
             eta = (epochs - (epoch + 1))*avg_epoch_time
 
 
@@ -101,8 +102,9 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, start_epoch=0, 
             print('-' * 10)
             
             train_loss.append(epoch_loss) if phase=='train' else valid_loss.append(epoch_loss)
+
         if SAVE:
-            print(f"saving model with epoch={epoch}, loss={loss}...")
+            print(f"saving model with epoch = {epoch}, loss = {loss}...")
             save_model(model, epoch, epoch_loss)
             print("...save complete.")
             
@@ -115,70 +117,3 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, start_epoch=0, 
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))    
     
     return [x.detach().cpu().item() for x in train_loss], [x.detach().cpu().item() for x in valid_loss]
-
-def main ():
-    visual_debug = VISUAL_DEBUG
-    bs = BATCH_SIZE
-    epochs_val = NUM_EPOCHS
-    learn_rate = LEARNING_RATE
-
-    #sets the matplotlib display backend (most likely not needed)
-    #mp.use('TkAgg', force=True)
-
-    #load the training data
-    base_path = BASE_PATH
-
-    train_data, valid_data = make_data_loaders((300,150))
-
-    xb, yb = next(iter(train_data))
-    # print (xb.shape, yb.shape)
-    # print(batch_dice(xb, yb))
-    # print(acc_metric(xb, yb))
-
-    # print(yb[0,:,:].count_nonzero())
-    # print(yb[0,196:202,92:98])
-    # plt.imshow(xb[0,0,:,:])
-    # plt.show()
-    
-
-    # build the Unet2D with one channel as input and 2 channels as output
-    unet = Unet2D(1,2)
-
-    #loss function and optimizer
-    loss_fn = nn.CrossEntropyLoss()
-    opt = torch.optim.Adam(unet.parameters(), lr=learn_rate)
-
-    start_epoch = 0
-    if LOAD and check_for_checkpoints():
-        newest_file = newest_checkpoint()
-        newest_model = torch.load(newest_file)
-        unet.load_state_dict(newest_model["model"])
-        opt.load_state_dict(newest_model["optimizer"])
-        for state in opt.state.values():
-            for k, v in state.items():
-                if isinstance(v, torch.Tensor):
-                    state[k] = v.cuda()
-
-        start_epoch = newest_model["epoch"]
-        start_loss = newest_model["loss"]
-        start_epoch += 1
-        print(f"...load complete. starting at epoch {start_epoch}")
-
-    #do some training
-    train_loss, valid_loss = train(unet, train_data, valid_data, loss_fn, opt, acc_metric, start_epoch, epochs=epochs_val)
-
-    #plot training and validation losses
-
-    #predict on the next train batch (is this fair?)
-    xb, yb = next(iter(train_data))
-    with torch.no_grad():
-        predb = unet(xb.cuda())
-
-    #show the predicted segmentations
-    if visual_debug:
-        plot_loss(train_loss, valid_loss)
-        plot_visual_results(bs, xb, yb, predb)
-        plt.show()
-
-if __name__ == "__main__":
-    main()

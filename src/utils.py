@@ -28,11 +28,11 @@ def save_model(model, epoch, loss, optimizer = None):
     torch.save(model_dict, save_dir)
 
 def check_for_checkpoints():
-    if not glob.glob(SAVE_DIR+'/*'):
+    if not glob.glob(SAVE_DIR + '/*'):
         return False
     return True
 
 def newest_checkpoint():
-    files = glob.glob(SAVE_DIR+'/*')
+    files = glob.glob(SAVE_DIR + '/*')
     newest_model = max(files, key = os.path.getctime)
     return newest_model

@@ -2,12 +2,12 @@ from pathlib import Path
 import albumentations as A
 import os
 
-NUM_EPOCHS = 2
+NUM_EPOCHS = 10
 LEARNING_RATE = 0.04
 BATCH_SIZE = 12
 
 VISUAL_DEBUG = True
-LOAD = False
+LOAD = True
 SAVE = True
 BASE_PATH = Path("./datasets/CAMUS_resized")
 SAVE_DIR = os.path.join(os.getcwd(), 'checkpoints/')
