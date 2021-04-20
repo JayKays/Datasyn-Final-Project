@@ -39,6 +39,9 @@ def save_model(model, save_dir, model_name, epoch, loss, optimizer = None):
 
     if optimizer != None:
         model_dict['optimizer'] = optimizer.state_dict()
+
+    if not os.path.exists(save_dir):
+        save_dir = make_model_dir(save_dir)
     
     save_path = Path.joinpath(save_dir, model_name + '.pth')
 
