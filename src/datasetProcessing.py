@@ -9,7 +9,7 @@ from pathlib import Path
 
 def TTE_image_gt(image_path, gt_path):
     'Load an mhd image and returns it as PIL'
-    
+
     #Loading as medimage.image
     img = image(image_path)
     gt = image(gt_path)

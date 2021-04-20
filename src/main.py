@@ -24,7 +24,7 @@ def main ():
     #mp.use('TkAgg', force=True)
 
     #load the training data
-    train_data, valid_data = make_data_loaders((300,150))
+    train_data, valid_data = make_data_loaders('CAMUS_resized', (300,150))
 
     # build the Unet2D with one channel as input and 2 channels as output
     unet = Unet2D(1,2)
@@ -54,6 +54,17 @@ def main ():
         print(f"...load complete. starting at epoch {start_epoch}")
     # print(f"start Loss = {start_loss:.4f}")
 
+
+    #predict on the next train batch (is this fair?)
+    # xb, yb = next(iter(train_data))
+    # with torch.no_grad():
+    #     predb = unet(xb)
+    
+    # if visual_debug:
+    #     # plot_loss(train_loss, valid_loss)
+    #     plot_segmentation(bs, xb, yb, predb)
+    #     plt.show()
+    
     #do some training
     train_loss, valid_loss = train(unet, train_data, valid_data, loss_fn, opt, acc_metric, start_epoch, epochs=epochs_val)
 

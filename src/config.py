@@ -3,20 +3,24 @@ import albumentations as A
 import os
 
 NUM_EPOCHS = 10
-LEARNING_RATE = 0.04
+LEARNING_RATE = 0.02
 BATCH_SIZE = 12
 
 VISUAL_DEBUG = True
 LOAD = False
 SAVE = True
-BASE_PATH = Path("./datasets/CAMUS_resized")
-SAVE_DIR = os.path.join(os.getcwd(), 'checkpoints/')
+
+BASE_PATH = Path("datasets")
+SAVE_DIR = os.path.join(os.getcwd(), 'Saved_Models/')
+
+RESOLUTION = 384
 
 PREPROCESS_RECIPE = ['gaussian',
                     #'bilateral'
                     #'rotate',
                     #'resize'
                     ]
+
 
 PREPROCESS_PARAMS = {
     # for gaussian blur; 2 by default

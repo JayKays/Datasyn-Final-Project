@@ -75,13 +75,39 @@ def dice(predb, yb, smooth = 1e-4):
             scores[b,c] = dice_score
     
     class_dices = scores.mean(dim = 0)
-    tot_dice = scores.mean()
+    tot_dice = scores[:,1:].mean()
 
     return tot_dice, class_dices
 
-def dice3(predb, yb):
-    return 
+
+def dice_score(x, y, smoothing=1e-4):
+    num_classes = x.shape[1]
+    batch_size = x.shape[0]
     
+    dice_scores = torch_utils.to_cuda(torch.from_numpy(np.zeros((batch_size, num_classes-1))))
+
+    for b in range(batch_size):
+
+        pred = x[b].argmax(dim = 0).view(-1)
+        gt = y[b].view(-1)
+
+        for i in range(1, num_classes):
+
+            num_pred = (pred == i).float()
+            num_gt = (gt == i).float()
+
+            intersection = (num_pred*num_gt).sum()
+            union = num_pred.sum() + num_gt.sum()
+
+            dice = (2*intersection + smoothing) / (union + smoothing)
+            
+            dice_scores[b,i-1] = dice
+            
+            
+    dice_scores_final = dice_scores.mean(dim=0)
+    mean_dice_score = dice_scores_final.mean()
+    
+    return mean_dice_score.item(), dice_scores_final.item()
 
 
             

@@ -102,7 +102,8 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, start_epoch=0, 
             
             train_loss.append(epoch_loss) if phase=='train' else valid_loss.append(epoch_loss)
 
-        if SAVE:
+        #Saves checkpoint avery 10 epochs
+        if SAVE and (epoch + 1) % 10 == 0:
             print(f"saving model with epoch = {epoch}, loss = {loss}...")
             save_model(model, epoch, epoch_loss)
             print("...save complete.")
@@ -115,6 +116,10 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, start_epoch=0, 
     time_elapsed = time.time() - start
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))    
     
+    print(f"Saving Model", end = '...')
+    save_model(model, epoch, epoch_loss, save_folder="Default_UNET", model_name="CAMUS_resized.pth")
+    print("...save complete.")
+
     cpu_train_loss = [x.detach().cpu().item() for x in train_loss]
     cpu_valid_loss = [x.detach().cpu().item() for x in valid_loss]
 
