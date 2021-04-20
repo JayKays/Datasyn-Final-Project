@@ -10,7 +10,7 @@ VISUAL_DEBUG = True
 LOAD = True
 SAVE = True
 BASE_PATH = Path("./datasets/CAMUS_resized")
-SAVE_DIR = os.path.join(os.getcwd(), 'checkpointz/')
+SAVE_DIR = os.path.join(os.getcwd(), 'saved_models/')
 
 PREPROCESS_RECIPE = ['gaussian',
                     #'bilateral'
