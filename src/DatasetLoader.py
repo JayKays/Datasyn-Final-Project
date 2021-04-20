@@ -44,7 +44,7 @@ class DatasetLoader(Dataset):
     def open_mask(self, idx, add_dims=False):
         #open mask file
         raw_mask = np.array(Image.open(self.files[idx]['gt']).resize((self.res, self.res)))
-        raw_mask = np.where(raw_mask>100, 1, 0)
+        raw_mask = np.where(raw_mask> 100, 1, 0)
         
         return np.expand_dims(raw_mask, 0) if add_dims else raw_mask
     
@@ -61,17 +61,17 @@ class DatasetLoader(Dataset):
         
         return Image.fromarray(arr.astype(np.uint8), 'RGB')
 
-def split_dataset(data, data_splits):
+def split_dataset(data, train_percentage):
 
-    train_idx = range(data_splits[0])
-    valid_idx = range(data_splits[0], len(data))
+    train_idx = range(int(len(data)*train_percentage))
+    valid_idx = range(train_idx[-1] + 1, len(data))
 
     train_data = Subset(data, train_idx)
     valid_data = Subset(data, valid_idx)
-
+    
     return train_data, valid_data
 
-def make_data_loaders(dataset, data_splits):
+def make_train_dataloaders(dataset, train_percentage):
     # torch.random.seed(1)
 
     bs = BATCH_SIZE
@@ -83,17 +83,21 @@ def make_data_loaders(dataset, data_splits):
 
     data = DatasetLoader(gray, gt)
 
-    if len(data_splits) == 2:
+
+
+    if 0 <= train_percentage <= 1:
+    # if True:
         #Split dataset into training and validation
-        # train_data, val_data = torch.utils.data.random_split(data, data_splits)
-        train_data, valid_data = split_dataset(data, data_splits)
+        # train_data, valid_data, test_data = torch.utils.data.random_split(data, (250,100,100))
+        train_data, valid_data = split_dataset(data, train_percentage)
 
         train_load = DataLoader(train_data, batch_size = bs, shuffle = True)
         valid_load = DataLoader(valid_data, batch_size = bs, shuffle = True)
+        test_load = DataLoader(test_data, batch_size = bs, shuffle = True)
 
-        return train_load, valid_load
+        return train_load, valid_load, test_load
     else:
-        raise ("Datasplits wrong shape")
+        raise (f"Training percentage =  {train_percentage}, must be between 0 and 1")
 
     # elif len(data_splits) == 3:
     #     #Split dataset into train, validation and test
@@ -107,16 +111,16 @@ def make_data_loaders(dataset, data_splits):
 
     return DataLoader(data, batch_size = bs, shuffle = True)
 
-def make_test_dataloader(dataset_path):
+def make_test_dataloader(dataset):
     bs = BATCH_SIZE
     img_res = RESOLUTION
     # bs = 12
 
-    gt = Path.joinpath(BASE_PATH, 'train_gt')
-    gray = Path.joinpath(BASE_PATH, 'train_gray')
+    gt = Path.joinpath(BASE_PATH, dataset, 'test_gt')
+    gray = Path.joinpath(BASE_PATH, dataset, 'test_gray')
 
     data = DatasetLoader(gray, gt, img_res = img_res)
 
-    test_load  = DataLoader(test_data, batch_size = bs, shuffle = True, num_workers=1)
+    test_load  = DataLoader(test_data, batch_size = bs, shuffle = True, num_workers=0)
 
     return test_load

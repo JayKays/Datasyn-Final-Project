@@ -9,10 +9,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader, sampler
 from torch import nn
 
-from DatasetLoader import DatasetLoader, make_data_loaders
-from Unet2D import Unet2D
 from evaluation import acc_metric, dice
-from plotting import *
 from utils import *
 from config import *
 
@@ -116,9 +113,9 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, start_epoch=0, 
     time_elapsed = time.time() - start
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))    
     
-    print(f"Saving Model", end = '...')
-    save_model(model, epoch, epoch_loss, save_folder="Default_UNET", model_name="CAMUS_resized.pth")
-    print("...save complete.")
+    # print(f"Saving Model", end = '...')
+    # save_model(model, epoch, epoch_loss, save_folder="Default_UNET", model_name="CAMUS_resized.pth")
+    # print("...save complete.")
 
     cpu_train_loss = [x.detach().cpu().item() for x in train_loss]
     cpu_valid_loss = [x.detach().cpu().item() for x in valid_loss]

@@ -22,5 +22,5 @@ def plot_segmentation(bs, xb, yb, predb):
     for i in range(num_img):
         ax[i,0].imshow(batch_to_img(xb,i))
         ax[i,1].imshow(yb[i])
-        ax[i,2].imshow(predb_to_mask(predb, i, 1))
+        ax[i,2].imshow(predb_to_mask(predb, i, 0))
     

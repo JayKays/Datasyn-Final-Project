@@ -4,7 +4,6 @@ import os
 from config import *
 
 
-
 def test(model, dataset_dir):
     pass
 

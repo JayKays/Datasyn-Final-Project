@@ -3,7 +3,7 @@ import torch
 
 from torch import nn
 
-from DatasetLoader import make_data_loaders
+from DatasetLoader import make_train_dataloaders
 from train import train
 from evaluation import acc_metric
 from Unet2D import Unet2D
@@ -24,7 +24,8 @@ def main ():
     #mp.use('TkAgg', force=True)
 
     #load the training data
-    train_data, valid_data = make_data_loaders('CAMUS_resized', (300,150))
+    # train_data, valid_data = make_train_dataloaders('CAMUS', 8/9)
+    train_data, valid_data, test_data = make_train_dataloaders('CAMUS_resized', 2/3)
 
     # build the Unet2D with one channel as input and 2 channels as output
     unet = Unet2D(1,2)
@@ -52,8 +53,8 @@ def main ():
         start_loss = newest_model["loss"]
         # start_epoch += 1
         print(f"...load complete. starting at epoch {start_epoch}")
-    else:
-        print("LOAD == False or no checkpoints found.")
+    # else:
+        # print("LOAD == False or no checkpoints found.")
     # print(f"start Loss = {start_loss:.4f}")
 
 
@@ -73,13 +74,13 @@ def main ():
     #plot training and validation losses
 
     #predict on the next train batch (is this fair?)
-    xb, yb = next(iter(train_data))
+    xb, yb = next(iter(test_data))
     with torch.no_grad():
         predb = unet(xb.cuda())
 
     #show the predicted segmentations
     if visual_debug:
-        plot_loss(train_loss, valid_loss)
+        # plot_loss(train_loss, valid_loss)
         plot_segmentation(bs, xb, yb, predb)
         plt.show()
 
