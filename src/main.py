@@ -5,7 +5,7 @@ from torch import nn
 
 from DatasetLoader import make_train_dataloaders
 from train import train
-from evaluation import acc_metric
+from evaluation import acc_metric, dice
 from Unet2D import Unet2D
 from test import test
 
@@ -26,13 +26,11 @@ def main ():
     #mp.use('TkAgg', force=True)
 
     #load the training data
-    # train_data, valid_data = make_train_dataloaders('CAMUS', 8/9)
-    train_data, valid_data, test_data = make_train_dataloaders('CAMUS_resized', (300,100,50))
-    # print(len(test_data), len(test_data.dataset))
+    train_data, valid_data = make_train_dataloaders('CAMUS', 8/9)
+    # train_data, valid_data, test_data = make_train_dataloaders('CAMUSresized', (300,100,50))
     
-
     # build the Unet2D with one channel as input and 2 channels as output
-    unet = Unet2D(1,2)
+    unet = Unet2D(1,4)
 
     #loss function and optimizer
     loss_fn = nn.CrossEntropyLoss()
@@ -57,38 +55,24 @@ def main ():
         start_loss = newest_model["loss"]
         # start_epoch += 1
         print(f"...load complete. starting at epoch {start_epoch}")
-    # else:
-        # print("LOAD == False or no checkpoints found.")
-    # print(f"start Loss = {start_loss:.4f}")
-
-
-    #predict on the next train batch (is this fair?)
-    # xb, yb = next(iter(train_data))
-    # with torch.no_grad():
-    #     predb = unet(xb)
     
-    # if visual_debug:
-    #     # plot_loss(train_loss, valid_loss)
-    #     plot_segmentation(bs, xb, yb, predb)
-    #     plt.show()
-    
-    #do some training
-    train_loss, valid_loss = train(unet, train_data, valid_data, loss_fn, opt, acc_metric, start_epoch, epochs=epochs_val)
+    #Train model
+    model_dir = 'test'
+    train_loss, valid_loss = train(unet, train_data, valid_data, loss_fn, opt, dice, model_dir, start_epoch, epochs=epochs_val)
 
     #plot training and validation losses
+    # test(unet, 'CAMUS')
 
-    #predict on the next train batch (is this fair?)
-    test(unet, 'CAMUS_resized')
+    xb, yb = next(iter(valid_data))
+    with torch.no_grad():
+        predb = unet(xb.cuda()[:15])
 
-    # xb, yb = next(iter(test_data))
-    # with torch.no_grad():
-    #     predb = unet(xb.cuda()[:15])
+    #show the predicted segmentations
+    if visual_debug:
+        # plot_loss(train_loss, valid_loss)
+        plot_segmentation(xb[:15], yb[:15], predb[:15])
+        plt.show()
 
-    # #show the predicted segmentations
-    # if visual_debug:
-    #     # plot_loss(train_loss, valid_loss)
-    #     plot_segmentation(xb[:15], yb[:15], predb[:15])
-    #     plt.show()
 
 if __name__ == "__main__":
     main()

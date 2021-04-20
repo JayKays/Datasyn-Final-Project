@@ -2,6 +2,7 @@ import numpy as np
 import torch
 from config import *
 import os
+from pathlib import Path
 import glob
 
 def to_cuda(elements):
@@ -15,19 +16,34 @@ def to_cuda(elements):
         return elements.cuda()
     return elements
 
-def save_model(model, epoch, loss, optimizer = None, save_folder = None, model_name = None):
+def make_model_dir(dir_path):
+    model_number = 1
+    temp_path = dir_path
+
+    while os.path.exists(temp_path):
+        temp_path = Path(str(dir_path) + f'{model_number}')
+        model_number += 1
+
+    try:
+        os.makedirs(temp_path)
+    except OSError as exc: # Guard against race condition
+        if exc.errno != errno.EEXIST:
+            raise
+    
+    return temp_path
+def save_model(model, save_dir, model_name, epoch, loss, optimizer = None):
     model_dict = {}
     model_dict['model'] = model.state_dict()
     model_dict['epoch'] = epoch
     model_dict['loss'] = loss
+
     if optimizer != None:
         model_dict['optimizer'] = optimizer.state_dict()
-    if save_folder is None:
-        save_dir = os.path.join(SAVE_DIR, f'Last_Used_Checkpoints/epoch_{epoch}.pth')
-    else:
-        save_dir = os.path.join(SAVE_DIR, save_folder, model_name)
+    
+    save_path = Path.joinpath(save_dir, model_name + '.pth')
+
     # Save model
-    torch.save(model_dict, save_dir)
+    torch.save(model_dict, save_path)
 
 def check_for_checkpoints():
     if not glob.glob(SAVE_DIR + '/*'):

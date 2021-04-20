@@ -17,6 +17,7 @@ def test(model, dataset, bs = 20):
         test_data = make_test_dataloader(dataset)
     
     xb, yb = next(iter(test_data))
+    
     xb, yb = xb[:bs], yb[:bs]
 
     with torch.no_grad():

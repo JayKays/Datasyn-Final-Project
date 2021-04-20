@@ -13,13 +13,19 @@ from evaluation import acc_metric, dice
 from utils import *
 from config import *
 
-def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, start_epoch=0, epochs=1):
+def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, model_dir, start_epoch=0, epochs=1):
     start = time.time()
     model.cuda()
+
+    model_dir = make_model_dir(Path.joinpath(MODEL_SAVE_DIR,model_dir))
+
+    best_model_path = Path.joinpath(model_dir)
+    model_save_path = Path.joinpath(model_dir)
 
     train_loss, valid_loss = [], []
 
     best_acc = 0.0
+    early_stop_counter = 0
 
     for epoch in range(start_epoch, epochs):
         print('Epoch {}/{}'.format(epoch+1, epochs))
@@ -37,7 +43,7 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, start_epoch=0, 
 
             running_loss = 0.0
             running_acc = 0.0
-            running_dice = 0.0
+            # running_dice = 0.0
 
             step = 0
 
@@ -66,24 +72,24 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, start_epoch=0, 
                         loss = loss_fn(outputs, y.long())
 
                 # stats - whatever is the phase
-                acc = acc_fn(outputs, y)
-                tot_dice, batch_score = dice(outputs, y) 
+                acc, _ = acc_fn(outputs, y)
+                # tot_dice, batch_score = dice(outputs, y) 
 
                 running_acc  += acc*dataloader.batch_size
                 running_loss += loss*dataloader.batch_size 
-                running_dice += tot_dice
+                # running_acc += tot_dice
 
                 # print(tot_dice)
 
                 # print(step)
-                if step % 100 == 0:
-                    # clear_output(wait=True)
-                    print('Current step: {}  Loss: {}  Acc: {}  AllocMem (Mb): {}'.format(step, loss, acc, torch.cuda.memory_allocated()/1024/1024))
-                    # print(torch.cuda.memory_summary())
+                # if step % 100 == 0:
+                #     # clear_output(wait=True)
+                #     print('Current step: {}  Loss: {}  Acc: {}  AllocMem (Mb): {}'.format(step, loss, acc, torch.cuda.memory_allocated()/1024/1024))
+                #     # print(torch.cuda.memory_summary())
 
             epoch_loss = running_loss / len(dataloader.dataset)
             epoch_acc = running_acc / len(dataloader.dataset)
-            epoch_dice = running_dice / len(dataloader)
+            # epoch_dice = running_dice / len(dataloader)
 
             epoch_time = time.time() - epoch_start
 
@@ -94,28 +100,40 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, start_epoch=0, 
 
             # print('Epoch {}/{}'.format(epoch+1, epochs))
             # print('-' * 10)
-            print('{} Loss: {:.4f} Acc: {:.4f} DICE: {:.4f}'.format(phase, epoch_loss, epoch_acc, epoch_dice))
-            print('-' * 10)
+            print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
+            # print('-' * 10)
+
+            if phase == "valid":
+                if best_acc < epoch_acc:
+                    save_model(model, best_model_path, 'best_model', epoch, epoch_loss)
+                    best_acc = epoch_acc
+                    early_stop_counter = 0
+                else:
+                    early_stop_counter += 1
+
             
             train_loss.append(epoch_loss) if phase=='train' else valid_loss.append(epoch_loss)
 
         #Saves checkpoint avery 10 epochs
         if SAVE and (epoch + 1) % 10 == 0:
-            print(f"saving model with epoch = {epoch}, loss = {loss}...")
-            save_model(model, epoch, epoch_loss)
-            print("...save complete.")
+            print('-'*60)
+            print(f"Saved Checkpoint")
+            save_model(model, model_save_path, 'last_checkpoint', epoch, epoch_loss)
+            print('-'*60)
             
-
         print('Epoch time: {:.0f}m {:.0f}s'.format(epoch_time // 60, epoch_time % 60), end='\t') 
         print('ETA: {:.0f}m {:.0f}s'.format(eta // 60, eta % 60))
         print('-' * 60)
 
+        if early_stop_counter > EARLY_STOP_TH: 
+            print("Early stopped")
+            break
+
+    save_model(model, model_save_path, 'last_checkpoint', epoch, epoch_loss)
+
     time_elapsed = time.time() - start
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))    
     
-    # print(f"Saving Model", end = '...')
-    # save_model(model, epoch, epoch_loss, save_folder="Default_UNET", model_name="CAMUS_resized.pth")
-    # print("...save complete.")
 
     cpu_train_loss = [x.detach().cpu().item() for x in train_loss]
     cpu_valid_loss = [x.detach().cpu().item() for x in valid_loss]
