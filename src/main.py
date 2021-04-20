@@ -52,6 +52,8 @@ def main ():
         start_loss = newest_model["loss"]
         # start_epoch += 1
         print(f"...load complete. starting at epoch {start_epoch}")
+    else:
+        print("LOAD == False or no checkpoints found.")
     # print(f"start Loss = {start_loss:.4f}")
 
 

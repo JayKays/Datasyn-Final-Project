@@ -88,8 +88,13 @@ def make_data_loaders(dataset, data_splits):
         # train_data, val_data = torch.utils.data.random_split(data, data_splits)
         train_data, valid_data = split_dataset(data, data_splits)
 
+<<<<<<< HEAD
         train_load = DataLoader(train_data, batch_size = bs, shuffle = True)
         valid_load = DataLoader(valid_data, batch_size = bs, shuffle = True)
+=======
+        train_load = DataLoader(train_data, batch_size = bs, shuffle = True, num_workers = 1)
+        valid_load = DataLoader(val_data, batch_size = bs, shuffle = True, num_workers = 1)
+>>>>>>> 169a0c4b35ce3af6c372fb57345a33a899a6e4b3
 
         return train_load, valid_load
     else:
@@ -115,7 +120,13 @@ def make_test_dataloader(dataset_path):
     gt = Path.joinpath(BASE_PATH, 'train_gt')
     gray = Path.joinpath(BASE_PATH, 'train_gray')
 
+<<<<<<< HEAD
     data = DatasetLoader(gray, gt, img_res = img_res)
+=======
+        train_load = DataLoader(train_data, batch_size = bs, shuffle = True, num_workers = 1)
+        valid_load = DataLoader(val_data, batch_size = bs, shuffle = True, num_workers = 1)
+        test_load  = DataLoader(test_data, batch_size = bs, shuffle = True, num_workers = 1)
+>>>>>>> 169a0c4b35ce3af6c372fb57345a33a899a6e4b3
 
     test_load  = DataLoader(test_data, batch_size = bs, shuffle = True, num_workers=1)
 
