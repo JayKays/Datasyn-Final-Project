@@ -16,9 +16,9 @@ def plot_loss(train_loss, valid_loss):
     plt.plot(valid_loss, label='Valid loss')
     plt.legend()
 
-def plot_segmentation(bs, xb, yb, predb):
-    num_img = 3
-    fig, ax = plt.subplots(num_img,3, figsize=(15,num_img*5))
+def plot_segmentation(xb, yb, predb, num_img = 3):
+    
+    fig, ax = plt.subplots(num_img, 3, figsize=(15,num_img*5))
     for i in range(num_img):
         ax[i,0].imshow(batch_to_img(xb,i))
         ax[i,1].imshow(yb[i])

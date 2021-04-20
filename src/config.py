@@ -2,7 +2,7 @@ from pathlib import Path
 import albumentations as A
 import os
 
-NUM_EPOCHS = 10
+NUM_EPOCHS = 0
 LEARNING_RATE = 0.02
 BATCH_SIZE = 12
 

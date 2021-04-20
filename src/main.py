@@ -7,10 +7,12 @@ from DatasetLoader import make_train_dataloaders
 from train import train
 from evaluation import acc_metric
 from Unet2D import Unet2D
+from test import test
 
 from utils import *
 from plotting import *
 from config import *
+
 
 
 def main ():
@@ -25,7 +27,9 @@ def main ():
 
     #load the training data
     # train_data, valid_data = make_train_dataloaders('CAMUS', 8/9)
-    train_data, valid_data, test_data = make_train_dataloaders('CAMUS_resized', 2/3)
+    train_data, valid_data, test_data = make_train_dataloaders('CAMUS_resized', (300,100,50))
+    # print(len(test_data), len(test_data.dataset))
+    
 
     # build the Unet2D with one channel as input and 2 channels as output
     unet = Unet2D(1,2)
@@ -74,15 +78,17 @@ def main ():
     #plot training and validation losses
 
     #predict on the next train batch (is this fair?)
-    xb, yb = next(iter(test_data))
-    with torch.no_grad():
-        predb = unet(xb.cuda())
+    test(unet, 'CAMUS_resized')
 
-    #show the predicted segmentations
-    if visual_debug:
-        # plot_loss(train_loss, valid_loss)
-        plot_segmentation(bs, xb, yb, predb)
-        plt.show()
+    # xb, yb = next(iter(test_data))
+    # with torch.no_grad():
+    #     predb = unet(xb.cuda()[:15])
+
+    # #show the predicted segmentations
+    # if visual_debug:
+    #     # plot_loss(train_loss, valid_loss)
+    #     plot_segmentation(xb[:15], yb[:15], predb[:15])
+    #     plt.show()
 
 if __name__ == "__main__":
     main()
