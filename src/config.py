@@ -10,6 +10,8 @@ EARLY_STOP_TH = 3
 VISUAL_DEBUG = True
 LOAD = False
 SAVE = False
+TEST = False
+TRAIN = False
 
 BASE_PATH = Path("datasets")
 MODEL_SAVE_DIR = Path("Saved_Models")

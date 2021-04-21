@@ -48,6 +48,14 @@ def save_model(model, save_dir, model_name, epoch, loss, optimizer = None):
     # Save model
     torch.save(model_dict, save_path)
 
+
+def load_model(model_name, best = True):
+    if best:
+        load_path = Path.joinpath(MODEL_SAVE_DIR, model_name,'best_model.pth')
+    else:
+        load_path = Path.joinpath(MODEL_SAVE_DIR, model_name + '.pth')
+    return torch.load(load_path)
+
 def check_for_checkpoints():
     if not glob.glob(SAVE_DIR + '/*'):
         return False

@@ -98,14 +98,14 @@ def make_train_dataloaders(dataset, train_percentage):
 
     data = DatasetLoader(gray, gt)
 
-    if type(train_percentage) == tuple:
+    if type(train_percentage) == tuple and len(train_percentage) == 3:
         #Split dataset into training and validation
         # train_data, valid_data, test_data = torch.utils.data.random_split(data, (250,100,100))
         train_data, valid_data, test_data = split_dataset(data, train_percentage)
 
-        train_load = DataLoader(train_data, batch_size = bs, shuffle = True)
-        valid_load = DataLoader(valid_data, batch_size = bs, shuffle = True)
-        test_load = DataLoader(test_data, batch_size= len(test_data), shuffle = True)
+        train_load = DataLoader(train_data, batch_size = bs, shuffle = True, num_workers = 1)
+        valid_load = DataLoader(valid_data, batch_size = bs, shuffle = True, num_workers = 1)
+        test_load = DataLoader(test_data, batch_size = bs, shuffle = True, num_workers = 1)
 
         return train_load, valid_load, test_load
 
@@ -113,22 +113,12 @@ def make_train_dataloaders(dataset, train_percentage):
 
         train_data, valid_data = split_dataset(data, train_percentage)
 
-        train_load = DataLoader(train_data, batch_size = bs, shuffle = True)
-        valid_load = DataLoader(valid_data, batch_size = bs, shuffle = True)
+        train_load = DataLoader(train_data, batch_size = bs, shuffle = True, num_workers = 1)
+        valid_load = DataLoader(valid_data, batch_size = bs, shuffle = True, num_workers = 1)
 
         return train_load, valid_load
     else:
-        raise (f"Training percentage = {train_percentage}, must be between 0 and 1")
-
-    # elif len(data_splits) == 3:
-    #     #Split dataset into train, validation and test
-    #     train_data, val_data, test_data = torch.utils.data.random_split(data, data_splits)
-
-    #     train_load = DataLoader(train_data, batch_size = bs, shuffle = True, num_workers=1)
-    #     valid_load = DataLoader(val_data, batch_size = bs, shuffle = True, num_workers=1)
-    #     test_load  = DataLoader(test_data, batch_size = bs, shuffle = True, num_workers=1)
-
-        # return train_load, valid_load, test_load
+        raise (f"Training percentage = {train_percentage}, must be float between 0 and 1 or tuple of size 3")
 
     return DataLoader(data, batch_size = bs, shuffle = True)
 
@@ -142,6 +132,6 @@ def make_test_dataloader(dataset):
 
     data = DatasetLoader(gray, gt, img_res = img_res)
 
-    test_load  = DataLoader(test_data, shuffle = True, num_workers=0)
+    test_load  = DataLoader(test_data, shuffle = True, num_workers = 1)
 
     return test_load
