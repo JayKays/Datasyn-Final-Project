@@ -4,7 +4,7 @@ import torch
 import numpy as np
 
 from matplotlib import pyplot as plt
-from DatasetLoader import make_dataloaders
+from DatasetLoader import make_dataloaders, make_TEE_dataloader
 from plotting import plot_segmentation
 from utils import to_cuda
 from evaluation import dice, class_dice
@@ -24,8 +24,8 @@ def test(model, dataset):
     if type(dataset) == str:
         if dataset == 'CAMUS_resized':
             _ , _ , test_data = make_train_dataloaders(dataset, (300,100,50))
-        else:
-            test_data = make_test_dataloader(dataset)
+        elif dataset == 'TEE_with_gt':
+            test_data = make_TEE_dataloader(dataset)
     else:
         test_data = dataset
     
@@ -33,10 +33,11 @@ def test(model, dataset):
     acc = 0
     class_dices = np.zeros(4)
     for x, y in test_data:
-
         with torch.no_grad():
             predb = model(x.cuda())
-        
+        # print(x.shape)
+        # print(y.shape)
+        # print(predb.shape)
         dice_score = dice(predb, to_cuda(y))
         class_score = class_dice(predb, to_cuda(y))
 
@@ -57,8 +58,7 @@ def test(model, dataset):
     xb, yb = next(iter(test_data))
     with torch.no_grad():
             predb = model(xb.cuda())
-
-    plot_segmentation(xb, yb, predb)
+    plot_segmentation(xb, yb[:,:,:,], predb)
     plt.show()
 
 if __name__ == "__main__":

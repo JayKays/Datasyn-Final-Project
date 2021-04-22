@@ -10,7 +10,7 @@ EARLY_STOP_TH = 3
 TEST = True
 TRAIN = False
 
-LOAD = True
+LOAD = False
 SAVE = True
 
 BASE_PATH = Path("datasets")
@@ -24,7 +24,6 @@ PREPROCESS_RECIPE = ['gaussian',
                     #'resize'
                     ]
 
-
 PREPROCESS_PARAMS = {
     # for gaussian blur; 2 by default
     "radius": 2,
@@ -36,4 +35,3 @@ PREPROCESS_PARAMS = {
     "sig_color": 15,
     "sig_space": 15,
 }
-

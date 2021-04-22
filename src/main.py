@@ -3,7 +3,7 @@ import torch
 
 from torch import nn
 
-from DatasetLoader import make_dataloaders
+from DatasetLoader import make_dataloaders, make_TEE_dataloader
 from train import train
 from evaluation import acc_metric, dice
 from Unet2D_default import Unet2D
@@ -29,13 +29,20 @@ def main ():
     should_test = TEST
 
     model_name = 'Default_unet'
+    # dataset = 'TEE_with_gt'
+    dataset = 'TEE'
 
     #sets the matplotlib display backend (most likely not needed)
     #mp.use('TkAgg', force=True)
 
     #load the training data
     # train_data, valid_data = make_train_dataloaders('CAMUS', 8/9)
-    train_data, valid_data, test_data = make_dataloaders('CAMUS', (4*300,4*100,4*50), img_res = img_res)
+    if dataset == 'TEE':
+        test_data = 'TEE_with_gt'
+        should_train = False
+        should_load = False
+    else:
+        train_data, valid_data, test_data = make_dataloaders(dataset, (4*300,4*100,4*50), img_res = img_res)
 
     #Model
     unet = Unet2D(1,4)

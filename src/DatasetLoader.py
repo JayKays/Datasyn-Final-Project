@@ -44,7 +44,7 @@ class DatasetLoader(Dataset):
     def open_mask(self, idx, add_dims=False):
         #open mask file
         raw_mask = np.array(Image.open(self.files[idx]['gt']).resize((self.res, self.res)))
-
+        
         # raw_mask = np.where(raw_mask> 100, 1, 0)
         
         return np.expand_dims(raw_mask, 0) if add_dims else raw_mask
@@ -88,19 +88,19 @@ def split_dataset(data, split):
     
     
 
-def make_dataloaders(dataset, split, img_res = 384):
+def make_dataloaders(dataset, split, img_res = RESOLUTION):
     '''Makes dataset loaders for a diven dataset, either split into 
     train/validation or train/val/test depending on split parameter'''
 
     bs = BATCH_SIZE
-    bs = 12
+    # bs = 12
 
     gt = Path.joinpath(BASE_PATH, dataset, 'train_gt')
     gray = Path.joinpath(BASE_PATH, dataset, 'train_gray')
 
     data = DatasetLoader(gray, gt, img_res = img_res)
 
-    if type(split) == tuple and len(split) == 3:
+    if type(split) == tuple and len(split) == 3 and sum(split) <= len(data):
         #Split dataset into training and validation
         # train_data, valid_data, test_data = torch.utils.data.random_split(data, (250,100,100))
         train_data, valid_data, test_data = split_dataset(data, split)
@@ -119,10 +119,13 @@ def make_dataloaders(dataset, split, img_res = 384):
         valid_load = DataLoader(valid_data, batch_size = bs, shuffle = True, num_workers = 4)
 
         return train_load, valid_load
+
+    elif split == 'TEE':
+        return DataLoader(data, batch_size = bs, shuffle = False, num_workers=4)
+
     else:
         raise (f"Training percentage = {split}, must be float between 0 and 1 or tuple of size 3")
 
-    return DataLoader(data, batch_size = bs, shuffle = True)
 
 def make_test_dataloader(dataset):
     '''unused'''
@@ -139,3 +142,9 @@ def make_test_dataloader(dataset):
     test_load  = DataLoader(test_data, shuffle = True, num_workers = 1)
 
     return test_load
+
+def make_TEE_dataloader(dataset, img_res = RESOLUTION):
+
+    TEE_data = make_dataloaders(dataset, 'TEE', img_res = img_res)
+
+    return TEE_data

@@ -115,7 +115,7 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, model_dir, star
             break
 
     save_model(model, model_save_path, 'last_checkpoint', epoch, epoch_loss)
-
+    
     time_elapsed = time.time() - start
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))    
 
