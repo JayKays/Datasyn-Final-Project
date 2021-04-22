@@ -17,6 +17,9 @@ def to_cuda(elements):
     return elements
 
 def make_model_dir(dir_path):
+    '''Makes a new model directory for a given path, 
+    to prevent overwriting existing models with the same name'''
+
     model_number = 1
     temp_path = dir_path
 
@@ -31,7 +34,11 @@ def make_model_dir(dir_path):
             raise
     
     return temp_path
+
 def save_model(model, save_dir, model_name, epoch, loss, optimizer = None):
+    '''Saves important paramters for a given model, 
+    to be able to load and pickup training and test the model'''
+
     model_dict = {}
     model_dict['model'] = model.state_dict()
     model_dict['epoch'] = epoch
@@ -49,19 +56,15 @@ def save_model(model, save_dir, model_name, epoch, loss, optimizer = None):
     torch.save(model_dict, save_path)
 
 
-def load_model(model_name, best = True):
+def load_model(model_name, best = False):
+    '''Loads the model dictonary saved with the given model name'''
+
     if best:
         load_path = Path.joinpath(MODEL_SAVE_DIR, model_name,'best_model.pth')
     else:
-        load_path = Path.joinpath(MODEL_SAVE_DIR, model_name + '.pth')
+        load_path = Path.joinpath(MODEL_SAVE_DIR, model_name, 'last_checkpoint.pth')
+
+    #Checks for existence of model directory
+    assert os.path.exists(load_path)
+
     return torch.load(load_path)
-
-def check_for_checkpoints():
-    if not glob.glob(SAVE_DIR + '/*'):
-        return False
-    return True
-
-def newest_checkpoint():
-    files = glob.glob(SAVE_DIR + '/*')
-    newest_model = max(files, key = os.path.getctime)
-    return newest_model

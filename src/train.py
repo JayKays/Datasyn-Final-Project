@@ -25,6 +25,7 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, model_dir, star
     train_loss, valid_loss = [], []
 
     best_acc = 0.0
+    min_loss = np.inf
     early_stop_counter = 0
 
     for epoch in range(start_epoch, epochs):
@@ -43,15 +44,11 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, model_dir, star
 
             running_loss = 0.0
             running_acc = 0.0
-            # running_dice = 0.0
-
-            step = 0
 
             # iterate over data
             for x, y in dataloader:
                 x = x.cuda()
                 y = y.cuda()
-                step += 1
 
                 # forward pass
                 if phase == 'train':
@@ -72,45 +69,29 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, model_dir, star
                         loss = loss_fn(outputs, y.long())
 
                 # stats - whatever is the phase
-                acc, _ = acc_fn(outputs, y)
-                # tot_dice, batch_score = dice(outputs, y) 
+                acc = acc_fn(outputs, y)
 
-                running_acc  += acc*dataloader.batch_size
-                running_loss += loss*dataloader.batch_size 
-                # running_acc += tot_dice
-
-                # print(tot_dice)
-
-                # print(step)
-                # if step % 100 == 0:
-                #     # clear_output(wait=True)
-                #     print('Current step: {}  Loss: {}  Acc: {}  AllocMem (Mb): {}'.format(step, loss, acc, torch.cuda.memory_allocated()/1024/1024))
-                #     # print(torch.cuda.memory_summary())
-
+                # running_acc  += acc * dataloader.batch_size
+                # running_loss += loss * dataloader.batch_size 
+                running_acc  += acc * x.shape[0]
+                running_loss += loss * x.shape[0]
+                
             epoch_loss = running_loss / len(dataloader.dataset)
             epoch_acc = running_acc / len(dataloader.dataset)
-            # epoch_dice = running_dice / len(dataloader)
 
             epoch_time = time.time() - epoch_start
 
-            #ETA calculation
-            avg_epoch_time = (time.time() - start) / (epoch - start_epoch + 1)
-            eta = (epochs - (epoch + 1))*avg_epoch_time
-
-
-            # print('Epoch {}/{}'.format(epoch+1, epochs))
-            # print('-' * 10)
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
-            # print('-' * 10)
 
             if phase == "valid":
                 if best_acc < epoch_acc:
                     save_model(model, best_model_path, 'best_model', epoch, epoch_loss)
                     best_acc = epoch_acc
-                    early_stop_counter = 0
-                else:
+                if min_loss <= epoch_loss:
                     early_stop_counter += 1
-
+                else:
+                    early_stop_counter = 0
+                    min_loss = epoch_loss
             
             train_loss.append(epoch_loss) if phase=='train' else valid_loss.append(epoch_loss)
 
@@ -120,8 +101,12 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, model_dir, star
             print(f"Saved Checkpoint")
             save_model(model, model_save_path, 'last_checkpoint', epoch, epoch_loss)
             print('-'*60)
-            
-        print('Epoch time: {:.0f}m {:.0f}s'.format(epoch_time // 60, epoch_time % 60), end='\t') 
+        
+        #ETA calculation
+        avg_epoch_time = (time.time() - start) / (epoch - start_epoch + 1)
+        eta = (epochs - (epoch + 1))*avg_epoch_time
+
+        print('Epoch time: {:.0f}m {:.0f}s'.format(epoch_time // 60, epoch_time % 60)) 
         print('ETA: {:.0f}m {:.0f}s'.format(eta // 60, eta % 60))
         print('-' * 60)
 
@@ -133,7 +118,6 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, model_dir, star
 
     time_elapsed = time.time() - start
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))    
-    
 
     cpu_train_loss = [x.detach().cpu().item() for x in train_loss]
     cpu_valid_loss = [x.detach().cpu().item() for x in valid_loss]

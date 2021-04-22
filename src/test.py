@@ -4,17 +4,23 @@ import torch
 import numpy as np
 
 from matplotlib import pyplot as plt
-from DatasetLoader import make_test_dataloader, make_train_dataloaders
+from DatasetLoader import make_dataloaders
 from plotting import plot_segmentation
 from utils import to_cuda
-from evaluation import dice
+from evaluation import dice, class_dice
 from Unet2D_default import Unet2D
 from Unet2D import imporoved_Unet2D
 from config import *
 
 
 def test(model, dataset):
+    '''Tests a given model on the given dataset,
+    prints out average dice score and class-wise dice score,
+    visualizes a few of the segmentation results'''
+    
+    model = model.cuda()
 
+    #Loads dataset if a name is given in stead of dataloader
     if type(dataset) == str:
         if dataset == 'CAMUS_resized':
             _ , _ , test_data = make_train_dataloaders(dataset, (300,100,50))
@@ -23,27 +29,30 @@ def test(model, dataset):
     else:
         test_data = dataset
     
+    #Result calculation over dataset
     acc = 0
     class_dices = np.zeros(4)
-
     for x, y in test_data:
 
         with torch.no_grad():
             predb = model(x.cuda())
         
-        tot_dice, class_dice = dice(predb, to_cuda(y))
+        dice_score = dice(predb, to_cuda(y))
+        class_score = class_dice(predb, to_cuda(y))
 
-        class_dice = class_dice.detach().cpu().numpy()
-        tot_dice = tot_dice.detach().cpu().numpy()
-        
-        acc += tot_dice * test_data.batch_size
-        class_dices += class_dice * test_data.batch_size
+        class_score = class_score.detach().cpu().numpy()
+        dice_score = dice_score.detach().cpu().numpy()
+
+        acc += dice_score * x.shape[0]
+        class_dices += class_score * x.shape[0]
+
 
     acc /= len(test_data.dataset)
     class_dices /= len(test_data.dataset)
 
+    #Display results
     print(f'DICE score on test set: {np.round(acc, decimals = 4)}')
-    print(f'Class wise DICE score: {np.round(class_dices[1:], decimals = 4)}')
+    print(f'Class-wise DICE score: {np.round(class_dices, decimals = 4)}')
 
     xb, yb = next(iter(test_data))
     with torch.no_grad():
@@ -51,7 +60,6 @@ def test(model, dataset):
 
     plot_segmentation(xb, yb, predb)
     plt.show()
-
 
 if __name__ == "__main__":
 

@@ -8,13 +8,13 @@ from pathlib import Path
 
 
 def TTE_image_gt(image_path, gt_path):
-    'Load an mhd image and returns it as PIL'
+    '''Load an mhd image and its groudn truth
+    from path and returns the PIL images'''
 
     #Loading as medimage.image
     img = image(image_path)
     gt = image(gt_path)
     
-
     #Convertin to PIL
     img = Image.fromarray(img.imdata.astype(np.uint8)[:,:,0], 'L')
     gt = Image.fromarray(gt.imdata.astype(np.uint8)[:,:,0], 'L')
@@ -22,21 +22,19 @@ def TTE_image_gt(image_path, gt_path):
     return img, gt
 
 def TTE_image(image_path):
-    'Load an mhd image and returns it as PIL'
+    '''Loads an mhd image from path and returns it as PIL'''
 
     #Loading as medimage.image
     img = image(image_path)
-    # gt = image(gt_path)
-    
 
     #Convertin to PIL
     img = Image.fromarray(img.imdata.astype(np.uint8)[:,:,0], 'L')
-    # gt = Image.fromarray(gt.imdata.astype(np.uint8)[:,:,0], 'L')
 
     return img
 
 
 def save_TTE_data_to_tif(tte_dir, save_dir, data_type):
+    '''Fetches all proper TTE mhd files and saves them in save directory as .tif format'''
     
     for image_type in ['_2CH_ED', '_2CH_ES', '_4CH_ED', '_4CH_ES']:
         for p in os.listdir(tte_dir):

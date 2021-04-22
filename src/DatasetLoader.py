@@ -62,12 +62,14 @@ class DatasetLoader(Dataset):
         
         return Image.fromarray(arr.astype(np.uint8), 'RGB')
 
-def split_dataset(data, train_percentage):
+def split_dataset(data, split):
+    '''Splits up dataset, either by percentage (train/validation),
+     or by a tuple with subset sizes (train/val/test)'''
 
-    if type(train_percentage) == tuple:
-        train_idx = range(train_percentage[0])
-        valid_idx = range(train_idx[-1] + 1, train_percentage[0] + train_percentage[1])
-        test_idx = range(valid_idx[-1] + 1, sum(train_percentage))
+    if type(split) == tuple:
+        train_idx = range(split[0])
+        valid_idx = range(train_idx[-1] + 1, split[0] + split[1])
+        test_idx = range(valid_idx[-1] + 1, sum(split))
 
         train_data = Subset(data, train_idx)
         valid_data = Subset(data, valid_idx)
@@ -76,7 +78,7 @@ def split_dataset(data, train_percentage):
         return train_data, valid_data, test_data
         
     else:
-        train_idx = range(int(len(data)*train_percentage))
+        train_idx = range(int(len(data)*split))
         valid_idx = range(train_idx[-1] + 1, len(data))
 
         train_data = Subset(data, train_idx)
@@ -86,43 +88,45 @@ def split_dataset(data, train_percentage):
     
     
 
-def make_train_dataloaders(dataset, train_percentage):
-    # torch.random.seed(1)
+def make_dataloaders(dataset, split, img_res = 384):
+    '''Makes dataset loaders for a diven dataset, either split into 
+    train/validation or train/val/test depending on split parameter'''
 
     bs = BATCH_SIZE
-    img_res = RESOLUTION
     bs = 12
 
     gt = Path.joinpath(BASE_PATH, dataset, 'train_gt')
     gray = Path.joinpath(BASE_PATH, dataset, 'train_gray')
 
-    data = DatasetLoader(gray, gt)
+    data = DatasetLoader(gray, gt, img_res = img_res)
 
-    if type(train_percentage) == tuple and len(train_percentage) == 3:
+    if type(split) == tuple and len(split) == 3:
         #Split dataset into training and validation
         # train_data, valid_data, test_data = torch.utils.data.random_split(data, (250,100,100))
-        train_data, valid_data, test_data = split_dataset(data, train_percentage)
+        train_data, valid_data, test_data = split_dataset(data, split)
 
-        train_load = DataLoader(train_data, batch_size = bs, shuffle = True, num_workers = 1)
-        valid_load = DataLoader(valid_data, batch_size = bs, shuffle = True, num_workers = 1)
-        test_load = DataLoader(test_data, batch_size = bs, shuffle = True, num_workers = 1)
+        train_load = DataLoader(train_data, batch_size = bs, shuffle = True, num_workers = 4)
+        valid_load = DataLoader(valid_data, batch_size = bs, shuffle = True, num_workers = 4)
+        test_load = DataLoader(test_data, batch_size = bs, shuffle = False, num_workers = 4)
 
         return train_load, valid_load, test_load
 
-    elif type(train_percentage) == float and 0 <= train_percentage <= 1:
+    elif type(split) == float and 0 <= split <= 1:
 
-        train_data, valid_data = split_dataset(data, train_percentage)
+        train_data, valid_data = split_dataset(data, split)
 
-        train_load = DataLoader(train_data, batch_size = bs, shuffle = True, num_workers = 1)
-        valid_load = DataLoader(valid_data, batch_size = bs, shuffle = True, num_workers = 1)
+        train_load = DataLoader(train_data, batch_size = bs, shuffle = True, num_workers = 4)
+        valid_load = DataLoader(valid_data, batch_size = bs, shuffle = True, num_workers = 4)
 
         return train_load, valid_load
     else:
-        raise (f"Training percentage = {train_percentage}, must be float between 0 and 1 or tuple of size 3")
+        raise (f"Training percentage = {split}, must be float between 0 and 1 or tuple of size 3")
 
     return DataLoader(data, batch_size = bs, shuffle = True)
 
 def make_test_dataloader(dataset):
+    '''unused'''
+    
     bs = BATCH_SIZE
     img_res = RESOLUTION
     # bs = 12
