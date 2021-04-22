@@ -57,13 +57,24 @@ def save_TTE_data_to_tif(tte_dir, save_dir, data_type):
                 img.save(img_savepath)
 
 
-
 if __name__ == "__main__":
     
+
     tte_test_dir = Path("datasets/CAMUS_full/testing")
     tte_train_dir = Path("datasets/CAMUS_full/training")
 
-    save_dir = Path("datasets/CAMUS")
+    tte_save_dir = Path("datasets/TTE")
 
-    save_TTE_data_to_tif(tte_train_dir, save_dir, 'train')
-    save_TTE_data_to_tif(tte_test_dir, save_dir, 'test')
+    #Makes dataset directory if it doesn't exist
+    if not os.path.exists(tte_save_dir):
+        os.makedirs(Path.joinpath(save_dir, 'train_gray'))
+        os.makedirs(Path.joinpath(save_dir, 'train_gt'))
+        os.makedirs(Path.joinpath(save_dir, 'test_gray'))
+
+    save_TTE_data_to_tif(tte_train_dir, tte_save_dir, 'train')
+    save_TTE_data_to_tif(tte_test_dir, tte_save_dir, 'test')
+
+
+
+
+
