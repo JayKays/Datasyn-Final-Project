@@ -13,8 +13,6 @@ MOMENTUM = 0
 BATCH_SIZE = 12
 
 LOSS_FUNC = nn.CrossEntropyLoss()
-# OPTIMIZER = torch.optim.SGD(unet.parameters(), lr = LEARNING_RATE, momentum=MOMENTUM)
-OPTIMIZER = torch.optim.Adam
 
 #Number of epochs without validation loss improvements before stopping
 EARLY_STOP_TH = 4
@@ -29,7 +27,7 @@ MODEL_NAME = 'Baseline'
 #Paramters to decide wether to test, traing and/or Load model
 TEST = True
 TRAIN = True
-LOAD = True
+LOAD = False
 
 #Parameters to decide wether to extract TTE/TEE or not when running exstraxtion script
 EXTRACT_TTE = False
@@ -51,23 +49,26 @@ MODEL_SAVE_DIR = Path("Saved_Models")
 
 #Image processing
 RESOLUTION = 384
+TRANSFORM = True
 
-PREPROCESS_RECIPE = ['gaussian',
-                    #'bilateral'
-                    #'rotate',
-                    #'resize'
-                    ]
+TRANSFORMS = A.Compose([
+    A.IAASharpen(alpha=(0.1, 0.4), lightness=(0.5, 1.0), always_apply=False, p=0.5),
+])
 
-PREPROCESS_PARAMS = {
-    # for gaussian blur; 2 by default
-    "radius": 2,
-    "rotate": 90,
-    "resize": (384, 384),
+# PREPROCESS_RECIPE = ['gaussian',
+#                     #'bilateral'
+#                     #'rotate',
+#                     #'resize'
+#                     ]
+
+# PREPROCESS_PARAMS = {
+#     # for gaussian blur; 2 by default
+#     "radius": 2,
+#     "rotate": 90,
+#     "resize": (384, 384),
     
-    # for bilateral smoothing
-    "kernel_size": 15,
-    "sig_color": 15,
-    "sig_space": 15,
-}
-
-
+#     # for bilateral smoothing
+#     "kernel_size": 15,
+#     "sig_color": 15,
+#     "sig_space": 15,
+# }
