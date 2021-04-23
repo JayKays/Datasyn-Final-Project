@@ -58,7 +58,7 @@ def test(model, dataset):
     xb, yb = next(iter(test_data))
     with torch.no_grad():
             predb = model(xb.cuda())
-    plot_segmentation(xb, yb[:,:,:,], predb)
+    plot_segmentation(xb, yb, predb)
     plt.show()
 
 if __name__ == "__main__":

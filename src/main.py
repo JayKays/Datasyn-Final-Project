@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib as mp
 import torch
 
 from torch import nn
@@ -8,6 +9,7 @@ from train import train
 from evaluation import acc_metric, dice
 from Unet2D_default import Unet2D
 from Unet2D import imporoved_Unet2D
+from UNet import UNet
 from test import test
 
 from utils import *
@@ -28,12 +30,12 @@ def main ():
     should_train = TRAIN
     should_test = TEST
 
-    model_name = 'Default_unet'
+    model_name = 'UNet'
     # dataset = 'TEE_with_gt'
-    dataset = 'TEE'
+    dataset = 'TTE'
 
     #sets the matplotlib display backend (most likely not needed)
-    #mp.use('TkAgg', force=True)
+    mp.use('TkAgg', force=True)
 
     #load the training data
     # train_data, valid_data = make_train_dataloaders('CAMUS', 8/9)
@@ -42,14 +44,16 @@ def main ():
         should_train = False
         should_load = False
     else:
-        train_data, valid_data, test_data = make_dataloaders(dataset, (4*300,4*100,4*50), img_res = img_res)
+        train_data, valid_data, test_data = make_dataloaders(dataset, (4*300,4*100,4*50), img_res = 284)
 
     #Model
-    unet = Unet2D(1,4)
+    # unet = Unet2D(1,4)
+    unet = UNet(1,4)
 
     #loss function and optimizer
     loss_fn = nn.CrossEntropyLoss()
-    opt = torch.optim.Adam(unet.parameters(), lr=learn_rate)
+    # opt = torch.optim.Adam(unet.parameters(), lr=learn_rate)
+    opt = torch.optim.SGD(unet.parameters(), lr = learn_rate, momentum=0.99)
 
     
     #Loading from checkpoint

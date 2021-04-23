@@ -23,15 +23,12 @@ def make_model_dir(dir_path):
     model_number = 1
     temp_path = dir_path
 
-    while os.path.exists(temp_path):
+    while os.path.exists(temp_path) and len(os.listdir(temp_path)) != 0:
         temp_path = Path(str(dir_path) + f'{model_number}')
         model_number += 1
 
-    try:
+    if not os.path.exists(temp_path):
         os.makedirs(temp_path)
-    except OSError as exc: # Guard against race condition
-        if exc.errno != errno.EEXIST:
-            raise
     
     return temp_path
 

@@ -2,13 +2,13 @@ from pathlib import Path
 import albumentations as A
 import os
 
-NUM_EPOCHS = 27
+NUM_EPOCHS = 50
 LEARNING_RATE = 0.01
-BATCH_SIZE = 12
+BATCH_SIZE = 5
 EARLY_STOP_TH = 3
 
 TEST = True
-TRAIN = False
+TRAIN = True
 
 LOAD = False
 SAVE = True
