@@ -8,7 +8,7 @@ from DatasetLoader import make_dataloaders, make_TEE_dataloader
 from plotting import plot_segmentation
 from utils import to_cuda, load_model
 from evaluation import dice, class_dice
-from Unet2D_default import Unet2D
+from Unet2D_default import default_Unet2D
 from Unet2D import imporoved_Unet2D
 from config import *
 
@@ -17,8 +17,9 @@ def test(model, dataset):
     '''Tests a given model with the diven dataloader,
     prints out average dice score and class-wise dice score,
     visualizes a few of the segmentation results'''
-    
-    model = model.cuda()
+
+    if torch.cuda.is_available():
+        model = model.cuda()
 
     #Loads dataset if a name is given in stead of dataloader
     if type(dataset) == str:
@@ -29,15 +30,14 @@ def test(model, dataset):
     
     print(f"Testing on {DATASET}")
     print('-'*10)
+
     #Result calculation over dataset
     acc = 0
     class_dices = np.zeros(4)
     for x, y in test_data:
         with torch.no_grad():
-            predb = model(x.cuda())
-        # print(x.shape)
-        # print(y.shape)
-        # print(predb.shape)
+            predb = model(to_cuda(x))
+
         dice_score = dice(predb, to_cuda(y))
         class_score = class_dice(predb, to_cuda(y))
 
@@ -54,11 +54,13 @@ def test(model, dataset):
     #Display results
     print(f'DICE score on test set: {np.round(acc, decimals = 4)}')
     print(f'Class-wise DICE score: {np.round(class_dices, decimals = 4)}')
+    print('-'*60)
 
     xb, yb = next(iter(test_data))
+
     with torch.no_grad():
-            predb = model(xb.cuda())
-    plot_segmentation(xb, yb, predb)
+            predb = model(to_cuda(xb))
+    plot_segmentation(xb, yb, predb, num_img=5)
     plt.show()
 
 
@@ -69,9 +71,9 @@ if __name__ == "__main__":
     else:
         _, _, test_data = make_train_dataloaders(DATASET, DATA_SPLIT)
 
-    unet = Unet2D(1,4)
+    unet = Unet2D(1, 4)
 
-    model_dict = load_model(MODEL_NAME)
+    model_dict = load_model(MODEL_NAME, best = True)
 
     unet.load_state_dict(model_dict["model"])
 

@@ -1,22 +1,30 @@
 from pathlib import Path
+# from dice_loss import dice_loss
+from torch import nn
+import torch
 import albumentations as A
 import os
 
 
 #Hyper Parameters
-NUM_EPOCHS = 30
+NUM_EPOCHS = 50
 LEARNING_RATE = 0.01
-BATCH_SIZE = 5
+MOMENTUM = 0
+BATCH_SIZE = 12
+
+LOSS_FUNC = nn.CrossEntropyLoss()
+# OPTIMIZER = torch.optim.SGD(unet.parameters(), lr = LEARNING_RATE, momentum=MOMENTUM)
+OPTIMIZER = torch.optim.Adam
 
 #Number of epochs without validation loss improvements before stopping
-EARLY_STOP_TH = 3
+EARLY_STOP_TH = 4
 
 #Name of dataset and split sizes of train/val/test
 DATASET = 'TTE'
 DATA_SPLIT = (4*300, 4*100, 4*50)
 
 #Name of model to load/test/train
-MODEL_NAME = 'Default_unet'
+MODEL_NAME = 'Baseline'
 
 #Paramters to decide wether to test, traing and/or Load model
 TEST = True
@@ -61,3 +69,5 @@ PREPROCESS_PARAMS = {
     "sig_color": 15,
     "sig_space": 15,
 }
+
+

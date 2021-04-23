@@ -17,7 +17,10 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, model_dir, star
     start = time.time()
     model.cuda()
 
-    model_dir = make_model_dir(Path.joinpath(MODEL_SAVE_DIR, model_dir))
+    if not LOAD:
+        model_dir = make_model_dir(Path.joinpath(MODEL_SAVE_DIR, model_dir))
+    else:
+        model_dir = Path.joinpath(MODEL_SAVE_DIR, model_dir)
 
     best_model_path = Path.joinpath(model_dir)
     model_save_path = Path.joinpath(model_dir)
@@ -84,10 +87,10 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, model_dir, star
 
             epoch_time = time.time() - epoch_start
 
-            print('{} Loss: {:.4f} Acc: {:.4f} LV_Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc, epoch_class_dice[1]))
+            print('{} Loss: {:.4f} DICE: {:.4f} LV DICE: {:.4f}'.format(phase, epoch_loss, epoch_acc, epoch_class_dice[1]))
 
             if phase == "valid":
-                #Updates best performing model for LV 
+                #Updates best performing model for LV class
                 if best_LV_acc < epoch_class_dice[1]:
                     save_model(model, best_model_path, 'best_model', epoch, epoch_loss)
                     best_LV_acc = epoch_class_dice[1]
@@ -111,7 +114,6 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, model_dir, star
 
         #Saves checkpoint avery 5 epochs
         if (epoch + 1) % 5 == 0:
-            print('-'*60)
             print(f"Saved Checkpoint")
             save_model(model, model_save_path, 'last_checkpoint', epoch + 1, epoch_loss)
             print('-'*60)
@@ -126,8 +128,8 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, model_dir, star
     time_elapsed = time.time() - start
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))    
     print('-'*60)
-    
-    cpu_train_loss = [x.detach().cpu().item() for x in train_loss]
-    cpu_valid_loss = [x.detach().cpu().item() for x in valid_loss]
 
-    return cpu_train_loss, cpu_valid_loss
+    # cpu_train_loss = [x.detach().cpu().item() for x in train_loss]
+    # cpu_valid_loss = [x.detach().cpu().item() for x in valid_loss]
+
+    return to_cpu(train_loss), to_cpu(valid_loss)

@@ -126,7 +126,8 @@ def make_dataloaders(dataset, split, img_res = RESOLUTION):
         raise (f"Training percentage = {split}, must be float between 0 and 1 or tuple of size 3 with proper subset sizes")
 
 def make_TEE_dataloader(img_res = RESOLUTION):
-
+    '''Loads the TEE dataset for testing'''
+    
     TEE_data = make_dataloaders('TEE', 'TEE', img_res = img_res)
 
     return TEE_data

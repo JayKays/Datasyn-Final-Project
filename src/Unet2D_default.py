@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-class Unet2D(nn.Module):
+class default_Unet2D(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
 
