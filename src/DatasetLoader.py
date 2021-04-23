@@ -95,7 +95,7 @@ def split_dataset(data, split):
     
     
 
-def make_dataloaders(dataset, split, img_res = RESOLUTION):
+def make_dataloaders(dataset, split, img_res = RESOLUTION, transform = TRANSFORM):
     '''Makes dataset loaders for a diven dataset, either split into 
     train/validation or train/val/test depending on split parameter'''
 
@@ -105,7 +105,7 @@ def make_dataloaders(dataset, split, img_res = RESOLUTION):
     gt = Path.joinpath(BASE_PATH, dataset, 'train_gt')
     gray = Path.joinpath(BASE_PATH, dataset, 'train_gray')
 
-    data = DatasetLoader(gray, gt, img_res = img_res)
+    data = DatasetLoader(gray, gt, img_res = img_res, transform = transform)
 
     if type(split) == tuple and len(split) == 3 and sum(split) <= len(data):
         #Split dataset into training and validation
@@ -134,7 +134,7 @@ def make_dataloaders(dataset, split, img_res = RESOLUTION):
 
 def make_TEE_dataloader(img_res = RESOLUTION):
     '''Loads the TEE dataset for testing'''
-    
-    TEE_data = make_dataloaders('TEE', 'TEE', img_res = img_res)
+
+    TEE_data = make_dataloaders('TEE', 'TEE', img_res = img_res, transform = False)
 
     return TEE_data

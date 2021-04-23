@@ -56,9 +56,8 @@ def main ():
     #loss function and optimizer
     # loss_fn = nn.CrossEntropyLoss()
     loss_fn = LOSS_FUNC
-    # opt = torch.optim.Adam(unet.parameters(), lr=learn_rate)
+    opt = torch.optim.Adam(unet.parameters(), lr=learn_rate)
     # opt = torch.optim.SGD(unet.parameters(), lr = learn_rate, momentum=0.99)
-    opt = OPTIMIZER(unet.parameters(), lr=LEARNING_RATE)
 
     
     #Loading from checkpoint

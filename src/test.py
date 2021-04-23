@@ -9,7 +9,7 @@ from plotting import plot_segmentation
 from utils import to_cuda, load_model
 from evaluation import dice, class_dice
 from Unet2D_default import default_Unet2D
-from Unet2D import imporoved_Unet2D
+from Unet2D import improved_Unet2D
 from config import *
 
 
@@ -21,6 +21,8 @@ def test(model, dataset):
     if torch.cuda.is_available():
         model = model.cuda()
 
+    model.train(False)
+
     #Loads dataset if a name is given in stead of dataloader
     if type(dataset) == str:
         if dataset == 'CAMUS_resized':
@@ -28,7 +30,7 @@ def test(model, dataset):
     else:
         test_data = dataset
     
-    print(f"Testing on {DATASET}")
+    print(f"Testing {MODEL_NAME} on {DATASET}")
     print('-'*10)
 
     #Result calculation over dataset
@@ -60,7 +62,7 @@ def test(model, dataset):
 
     with torch.no_grad():
             predb = model(to_cuda(xb))
-    plot_segmentation(xb, yb, predb, num_img=5)
+    plot_segmentation(xb, yb, predb, num_img=3)
     plt.show()
 
 
@@ -69,9 +71,9 @@ if __name__ == "__main__":
     if DATASET == 'TEE':
         test_data = make_TEE_dataloader()
     else:
-        _, _, test_data = make_train_dataloaders(DATASET, DATA_SPLIT)
+        _, _, test_data = make_dataloaders(DATASET, DATA_SPLIT, transform = False)
 
-    unet = Unet2D(1, 4)
+    unet = default_Unet2D(1, 4)
 
     model_dict = load_model(MODEL_NAME, best = True)
 

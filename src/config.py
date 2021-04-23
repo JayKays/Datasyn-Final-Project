@@ -26,7 +26,7 @@ MODEL_NAME = 'Baseline'
 
 #Paramters to decide wether to test, traing and/or Load model
 TEST = True
-TRAIN = True
+TRAIN = False
 LOAD = False
 
 #Parameters to decide wether to extract TTE/TEE or not when running exstraxtion script
