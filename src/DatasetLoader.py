@@ -10,13 +10,14 @@ from config import *
 
 #load data from a folder
 class DatasetLoader(Dataset):
-    def __init__(self, gray_dir, gt_dir, pytorch=True, img_res = 384):
+    def __init__(self, gray_dir, gt_dir, pytorch=True, img_res = RESOLUTION, transform = TRANSFORM):
         super().__init__()
         
         # Loop through the files in red folder and combine, into a dictionary, the other bands
         self.files = [self.combine_files(f, gt_dir) for f in gray_dir.iterdir() if not f.is_dir()]
         self.pytorch = pytorch
-        self.res= img_res
+        self.res = img_res
+        self.trans = transform
         
     def combine_files(self, gray_file: Path, gt_dir):
         
@@ -34,6 +35,9 @@ class DatasetLoader(Dataset):
         raw_PIL = Image.open(self.files[idx]['gray']).resize((self.res, self.res))
         raw_us = np.stack([np.array(raw_PIL),], axis=2)
 
+        if self.trans:
+            raw_us = TRANSFORMS(image=raw_us)["image"]
+
         if invert:
             raw_us = raw_us.transpose((2,0,1))
     
@@ -44,6 +48,9 @@ class DatasetLoader(Dataset):
     def open_mask(self, idx, add_dims=False):
         #open mask file
         raw_mask = np.array(Image.open(self.files[idx]['gt']).resize((self.res, self.res)))
+
+        # if self.trans:
+        #     raw_mask = TRANSFORMS(image=raw_mask)["image"]
         
         # raw_mask = np.where(raw_mask> 100, 1, 0)
         

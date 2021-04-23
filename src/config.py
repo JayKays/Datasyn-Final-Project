@@ -4,24 +4,24 @@ import os
 
 
 #Hyper Parameters
-NUM_EPOCHS = 30
+NUM_EPOCHS = 50
 LEARNING_RATE = 0.01
-BATCH_SIZE = 5
+BATCH_SIZE = 12
 
 #Number of epochs without validation loss improvements before stopping
-EARLY_STOP_TH = 3
+EARLY_STOP_TH = 6
 
 #Name of dataset and split sizes of train/val/test
 DATASET = 'TTE'
 DATA_SPLIT = (4*300, 4*100, 4*50)
 
 #Name of model to load/test/train
-MODEL_NAME = 'Default_unet'
+MODEL_NAME = '5layer'
 
 #Paramters to decide wether to test, traing and/or Load model
 TEST = True
 TRAIN = True
-LOAD = True
+LOAD = False
 
 #Parameters to decide wether to extract TTE/TEE or not when running exstraxtion script
 EXTRACT_TTE = False
@@ -43,21 +43,26 @@ MODEL_SAVE_DIR = Path("Saved_Models")
 
 #Image processing
 RESOLUTION = 384
+TRANSFORM = True
 
-PREPROCESS_RECIPE = ['gaussian',
-                    #'bilateral'
-                    #'rotate',
-                    #'resize'
-                    ]
+TRANSFORMS = A.Compose([
+    A.IAASharpen(alpha=(0.1, 0.4), lightness=(0.5, 1.0), always_apply=False, p=0.5),
+])
 
-PREPROCESS_PARAMS = {
-    # for gaussian blur; 2 by default
-    "radius": 2,
-    "rotate": 90,
-    "resize": (384, 384),
+# PREPROCESS_RECIPE = ['gaussian',
+#                     #'bilateral'
+#                     #'rotate',
+#                     #'resize'
+#                     ]
+
+# PREPROCESS_PARAMS = {
+#     # for gaussian blur; 2 by default
+#     "radius": 2,
+#     "rotate": 90,
+#     "resize": (384, 384),
     
-    # for bilateral smoothing
-    "kernel_size": 15,
-    "sig_color": 15,
-    "sig_space": 15,
-}
+#     # for bilateral smoothing
+#     "kernel_size": 15,
+#     "sig_color": 15,
+#     "sig_space": 15,
+# }
