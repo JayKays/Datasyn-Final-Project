@@ -102,7 +102,6 @@ def make_dataloaders(dataset, split, img_res = RESOLUTION):
 
     if type(split) == tuple and len(split) == 3 and sum(split) <= len(data):
         #Split dataset into training and validation
-        # train_data, valid_data, test_data = torch.utils.data.random_split(data, (250,100,100))
         train_data, valid_data, test_data = split_dataset(data, split)
 
         train_load = DataLoader(train_data, batch_size = bs, shuffle = True, num_workers = 4)
@@ -124,27 +123,10 @@ def make_dataloaders(dataset, split, img_res = RESOLUTION):
         return DataLoader(data, batch_size = bs, shuffle = False, num_workers=4)
 
     else:
-        raise (f"Training percentage = {split}, must be float between 0 and 1 or tuple of size 3")
+        raise (f"Training percentage = {split}, must be float between 0 and 1 or tuple of size 3 with proper subset sizes")
 
+def make_TEE_dataloader(img_res = RESOLUTION):
 
-def make_test_dataloader(dataset):
-    '''unused'''
-    
-    bs = BATCH_SIZE
-    img_res = RESOLUTION
-    # bs = 12
-
-    gt = Path.joinpath(BASE_PATH, dataset, 'test_gt')
-    gray = Path.joinpath(BASE_PATH, dataset, 'test_gray')
-
-    data = DatasetLoader(gray, gt, img_res = img_res)
-
-    test_load  = DataLoader(test_data, shuffle = True, num_workers = 1)
-
-    return test_load
-
-def make_TEE_dataloader(dataset, img_res = RESOLUTION):
-
-    TEE_data = make_dataloaders(dataset, 'TEE', img_res = img_res)
+    TEE_data = make_dataloaders('TEE', 'TEE', img_res = img_res)
 
     return TEE_data

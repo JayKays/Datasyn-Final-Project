@@ -16,6 +16,18 @@ def to_cuda(elements):
         return elements.cuda()
     return elements
 
+def to_cpu(elements):
+    """
+    Transfers every object in elements to CPU if cuda is available.
+    elements can be a object or list/tuple of objects
+    """
+    if torch.cuda.is_available():
+        if type(elements) == tuple or type(elements) == list:
+            return [x.detach().cpu().item() for x in elements]
+        return elements.detach().cpu().item()
+    return elements
+
+
 def make_model_dir(dir_path):
     '''Makes a new model directory for a given path, 
     to prevent overwriting existing models with the same name'''

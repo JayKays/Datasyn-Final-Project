@@ -6,7 +6,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from DatasetLoader import make_dataloaders, make_TEE_dataloader
 from plotting import plot_segmentation
-from utils import to_cuda
+from utils import to_cuda, load_model
 from evaluation import dice, class_dice
 from Unet2D_default import Unet2D
 from Unet2D import imporoved_Unet2D
@@ -14,7 +14,7 @@ from config import *
 
 
 def test(model, dataset):
-    '''Tests a given model on the given dataset,
+    '''Tests a given model with the diven dataloader,
     prints out average dice score and class-wise dice score,
     visualizes a few of the segmentation results'''
     
@@ -24,11 +24,11 @@ def test(model, dataset):
     if type(dataset) == str:
         if dataset == 'CAMUS_resized':
             _ , _ , test_data = make_train_dataloaders(dataset, (300,100,50))
-        elif dataset == 'TEE_with_gt':
-            test_data = make_TEE_dataloader(dataset)
     else:
         test_data = dataset
     
+    print(f"Testing on {DATASET}")
+    print('-'*10)
     #Result calculation over dataset
     acc = 0
     class_dices = np.zeros(4)
@@ -61,10 +61,18 @@ def test(model, dataset):
     plot_segmentation(xb, yb, predb)
     plt.show()
 
+
 if __name__ == "__main__":
 
-    _, _, test_data = make_train_dataloaders('CAMUS', (4*300,4*100,4*50))
+    if DATASET == 'TEE':
+        test_data = make_TEE_dataloader()
+    else:
+        _, _, test_data = make_train_dataloaders(DATASET, DATA_SPLIT)
 
-    unet = Unet2D(1,4).cuda()
+    unet = Unet2D(1,4)
+
+    model_dict = load_model(MODEL_NAME)
+
+    unet.load_state_dict(model_dict["model"])
 
     test(unet, test_data)

@@ -30,9 +30,8 @@ def main ():
     should_train = TRAIN
     should_test = TEST
 
-    model_name = 'UNet'
-    # dataset = 'TEE_with_gt'
-    dataset = 'TTE'
+    model_name = MODEL_NAME
+    dataset = DATASET
 
     #sets the matplotlib display backend (most likely not needed)
     mp.use('TkAgg', force=True)
@@ -40,15 +39,16 @@ def main ():
     #load the training data
     # train_data, valid_data = make_train_dataloaders('CAMUS', 8/9)
     if dataset == 'TEE':
-        test_data = 'TEE_with_gt'
+        #Prevent accidentally training on TEE dataset
+        test_data = make_TEE_dataloader()
         should_train = False
         should_load = False
     else:
-        train_data, valid_data, test_data = make_dataloaders(dataset, (4*300,4*100,4*50), img_res = 284)
+        train_data, valid_data, test_data = make_dataloaders(dataset, (4*300,4*100,4*50))
 
     #Model
-    # unet = Unet2D(1,4)
-    unet = UNet(1,4)
+    unet = Unet2D(1,4)
+    # unet = UNet(1,4)
 
     #loss function and optimizer
     loss_fn = nn.CrossEntropyLoss()
@@ -63,7 +63,7 @@ def main ():
         model_dict = load_model(model_name)
         unet.load_state_dict(model_dict["model"])
 
-        start_epoch = model_dict["epoch"] + 1
+        start_epoch = model_dict["epoch"]
         start_loss = model_dict["loss"]
     
     #Train model
@@ -71,6 +71,7 @@ def main ():
         train_loss, valid_loss = train(unet, train_data, valid_data, loss_fn, opt, dice, model_name, start_epoch, epochs=num_epochs)
 
     if should_test:
+
         #Loads the best model under given name
         model_dict = load_model(model_name, best = True)
         unet.load_state_dict(model_dict["model"])

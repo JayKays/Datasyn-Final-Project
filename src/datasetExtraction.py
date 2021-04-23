@@ -8,6 +8,7 @@ from PIL import Image
 
 from pathlib import Path
 from matplotlib import pyplot as plt
+from config import *
 
 
 def mhd_to_PIL(img_path, new_spacing = [0.154, 0.154]):
@@ -54,7 +55,7 @@ def extract_TTE_to_tif(tte_dir, save_dir):
             #Save
             img.save(img_savepath)
             gt.save(gt_savepath)
-            
+
         #Stops after 450 patients, as the last 50 are empty
         if p == 'patient0450': break
 
@@ -105,12 +106,12 @@ def make_dir(dir_path):
 
 if __name__ == "__main__":
     
-    extract_TTE = True
-    extract_TEE = False
+    extract_TTE = EXTRACT_TTE
+    extract_TEE = EXTRACT_TEE
 
     if extract_TTE:
-        tte_train_dir = Path("datasets/CAMUS_full/training")
-        tte_save_dir = Path("datasets/TTE")
+        tte_train_dir = TTE_TRAIN_DIR
+        tte_save_dir = EXTRACTED_TTE_DIR
 
         #Makes dataset directories if they don't exist
         make_dir(Path.joinpath(tte_save_dir, 'train_gray'))
@@ -119,8 +120,8 @@ if __name__ == "__main__":
         extract_TTE_to_tif(tte_train_dir, tte_save_dir)
 
     if extract_TEE:
-        TEE_dir = Path('datasets/DataTEEGroundTruth')
-        TEE_save_dir = Path('datasets/TEE')
+        TEE_dir = TEE_TRAIN_DIR
+        TEE_save_dir = EXTRACTED_TEE_DIR
 
         #Makes directories if they don't exist
         make_dir(Path.joinpath(TEE_save_dir, 'train_gray'))
