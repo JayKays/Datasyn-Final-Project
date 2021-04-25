@@ -42,7 +42,7 @@ class DatasetLoader(Dataset):
         raw_us = np.stack([np.array(raw_PIL),], axis=2)
 
         if self.trans:
-            raw_us = TRANSFORMS(image=raw_us)["image"]
+            raw_us = TRANSFORMS(image = raw_us)["image"]
 
         if invert:
             raw_us = raw_us.transpose((2,0,1))
@@ -62,10 +62,6 @@ class DatasetLoader(Dataset):
             raw_mask = np.round(raw_mask/127).astype(int)
         else:
             raw_mask = np.array(raw_mask)
-        # if self.trans:
-        #     raw_mask = TRANSFORMS(image=raw_mask)["image"]
-        
-        # raw_mask = np.where(raw_mask> 100, 1, 0)
         
         return np.expand_dims(raw_mask, 0) if add_dims else raw_mask
     
