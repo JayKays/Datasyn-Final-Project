@@ -44,14 +44,15 @@ def make_model_dir(dir_path):
     
     return temp_path
 
-def save_model(model, save_dir, model_name, epoch, loss, optimizer = None):
+def save_model(model, save_dir, model_name, epoch, train_loss, valid_loss, optimizer = None):
     '''Saves important paramters for a given model, 
     to be able to load and pickup training and test the model'''
 
     model_dict = {}
     model_dict['model'] = model.state_dict()
     model_dict['epoch'] = epoch
-    model_dict['loss'] = loss
+    model_dict['train_loss'] = train_loss
+    model_dict['valid_loss'] = valid_loss
 
     if optimizer != None:
         model_dict['optimizer'] = optimizer.state_dict()

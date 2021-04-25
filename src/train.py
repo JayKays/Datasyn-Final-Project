@@ -13,7 +13,7 @@ from evaluation import acc_metric, class_dice
 from utils import *
 from config import *
 
-def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, model_dir, start_epoch=0, epochs=1):
+def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, model_dir, start_epoch=0, epochs=1, model_dict = None):
     start = time.time()
     model.cuda()
 
@@ -22,10 +22,15 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, model_dir, star
     else:
         model_dir = Path.joinpath(MODEL_SAVE_DIR, model_dir)
 
+    if model_dict is not None:
+        train_loss = to_cuda(model_dict['train_loss'])
+        valid_loss = to_cuda(model_dict['valid_loss'])
+    else:
+        train_loss, valid_loss = [], []
+
     best_model_path = Path.joinpath(model_dir)
     model_save_path = Path.joinpath(model_dir)
 
-    train_loss, valid_loss = [], []
 
     best_LV_acc = 0.0
     min_loss = np.inf
@@ -39,7 +44,7 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, model_dir, star
 
         for phase in ['train', 'valid']:
             if phase == 'train':
-                model.train(True)  # Set trainind mode = true
+                model.train(True)  # Set training mode = true
                 dataloader = train_dl
             else:
                 model.train(False)  # Set model to evaluate mode
@@ -84,15 +89,16 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, model_dir, star
             epoch_loss = running_loss / len(dataloader.dataset)
             epoch_acc = running_acc / len(dataloader.dataset)
             epoch_class_dice = running_class_dice / len(dataloader.dataset)
+            epoch_class_dice = epoch_class_dice.detach().cpu().numpy()
 
             epoch_time = time.time() - epoch_start
 
-            print('{} Loss: {:.4f} DICE: {:.4f} LV DICE: {:.4f}'.format(phase, epoch_loss, epoch_acc, epoch_class_dice[1]))
-
+            print('{} Loss: {:.4f} DICE: {:.4f} Class DICE: {}'.format(phase, epoch_loss, epoch_acc, np.round(epoch_class_dice, decimals = 4)))
+            # print(f'Class-wise DICE: {epoch_class_dice[:]}')
             if phase == "valid":
                 #Updates best performing model for LV class
-                if best_LV_acc < epoch_class_dice[1]:
-                    save_model(model, best_model_path, 'best_model', epoch, epoch_loss)
+                if best_LV_acc <= epoch_class_dice[1]:
+                    save_model(model, best_model_path, 'best_model', epoch, to_cpu(train_loss), to_cpu(valid_loss))
                     best_LV_acc = epoch_class_dice[1]
 
                 #Increments or resets early stopping counter
@@ -113,23 +119,21 @@ def train(model, train_dl, valid_dl, loss_fn, optimizer, acc_fn, model_dir, star
         print('-' * 60)
 
         #Saves checkpoint avery 5 epochs
-        if (epoch + 1) % 5 == 0:
+        if epoch % 5 == 0:
             print(f"Saved Checkpoint")
-            save_model(model, model_save_path, 'last_checkpoint', epoch + 1, epoch_loss)
+            save_model(model, model_save_path, 'last_checkpoint',epoch + 1, to_cpu(train_loss), to_cpu(valid_loss))
             print('-'*60)
 
         if early_stop_counter > EARLY_STOP_TH: 
             print("Early stopped!")
             print('-'*60)
             break
-
-    save_model(model, model_save_path, 'last_checkpoint', epoch + 1, epoch_loss)
+    
+    #Saves last model after training
+    save_model(model, model_save_path, 'last_checkpoint', epoch + 1, to_cpu(train_loss), to_cpu(valid_loss))
     
     time_elapsed = time.time() - start
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))    
     print('-'*60)
-
-    # cpu_train_loss = [x.detach().cpu().item() for x in train_loss]
-    # cpu_valid_loss = [x.detach().cpu().item() for x in valid_loss]
 
     return to_cpu(train_loss), to_cpu(valid_loss)
