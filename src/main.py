@@ -8,8 +8,7 @@ from DatasetLoader import make_dataloaders, make_TEE_dataloader
 from train import train
 from evaluation import acc_metric, dice
 from Unet2D_default import default_Unet2D
-from Unet2D import imporoved_Unet2D
-from UNet import UNet
+from Unet2D_final import improved_Unet2D
 from test import test
 
 from utils import *
@@ -49,38 +48,54 @@ def main ():
     if model_name == 'Baseline':
         unet = default_Unet2D(1,4)
     else:
-        unet = imporoved_Unet2D(1, 4)
+        unet = improved_Unet2D(1, 4)
     
     train_data, valid_data, test_data = make_dataloaders(dataset, split)
 
     #loss function and optimizer
-    # loss_fn = nn.CrossEntropyLoss()
     loss_fn = LOSS_FUNC
     opt = torch.optim.Adam(unet.parameters(), lr=learn_rate)
     # opt = torch.optim.SGD(unet.parameters(), lr = learn_rate, momentum=0.99)
 
-    
     #Loading from checkpoint
     start_epoch = 0
+    model_dict = None
     if should_load:
+        try:
+            model_dict = load_model(model_name)
+            unet.load_state_dict(model_dict["model"])
 
-        model_dict = load_model(model_name)
-        unet.load_state_dict(model_dict["model"])
-
-        start_epoch = model_dict["epoch"]
-        start_loss = model_dict["loss"]
+            start_epoch = model_dict["epoch"]
+            train_loss = model_dict['train_loss']
+            valid_loss = model_dict['valid_loss']
+            plot_loss(train_loss, valid_loss)
+            plt.show()
+            
+        except:
+            print("Model path not found, train new model in stead? (y/n)", end = '\t')
+            ans = input()
+            if ans != 'y': return
     
     #Train model
     if should_train:
-        train_loss, valid_loss = train(unet, train_data, valid_data, loss_fn, opt, dice, model_name, start_epoch, epochs=num_epochs)
+        train_loss, valid_loss = train(unet, train_data, valid_data,\
+             loss_fn, opt, dice, model_name, start_epoch, epochs=num_epochs, model_dict = model_dict)
+    
+        np.savetxt(Path.joinpath(MODEL_SAVE_DIR, model_name, 'train_loss.txt'), train_loss)
+        np.savetxt(Path.joinpath(MODEL_SAVE_DIR, model_name, 'valid_loss.txt'), valid_loss)
 
+        plot_loss(train_loss, valid_loss)
+
+    #Test model
     if should_test:
-
+        
         #Loads the best saved model under given name
         model_dict = load_model(model_name, best = True)
         unet.load_state_dict(model_dict["model"])
 
         #Tests model on test set
+        test_data.dataset.transform = False
+
         test(unet, test_data)
 
 
