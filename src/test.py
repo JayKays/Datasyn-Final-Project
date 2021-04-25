@@ -22,7 +22,7 @@ def test(model, dataset):
         model = model.cuda()
 
     model.train(False)
-
+    
     #Loads dataset if a name is given in stead of dataloader
     if type(dataset) == str:
         if dataset == 'CAMUS_resized':

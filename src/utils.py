@@ -1,9 +1,10 @@
 import numpy as np
 import torch
-from config import *
 import os
-from pathlib import Path
 import glob
+
+from pathlib import Path
+from config import *
 
 def to_cuda(elements):
     """

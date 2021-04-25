@@ -41,6 +41,64 @@ def plot_segmentation(xb, yb, predb, num_img = 3):
         ax[i,2].imshow(predb_to_mask(predb, i))
     
 
+def plot_bar_chart():
+    '''Makes bar chart over different model changes'''
+
+    data_avg = {'baseline':0.8499, '5_layers':0.8856, 'contrast':0.8853,
+        'gaussian':0.8857, 'SGD': 0.8793, 'sharpen': 0.8886, 'final_model': 0.8939}
+    data_LV = {'baseline':0.8946, '5_layers':0.9129, 'contrast':0.9115,
+        'gaussian':0.9158, 'SGD': 0.9094, 'sharpen': 0.9169, 'final_model': 0.9181}
+
+    labels = list(data_LV.keys())
+    values_LV = list(data_LV.values())
+    values_avg = list(data_avg.values())
+
+    bar_width = 0.33
+    br1 = np.arange(len(labels))
+    br2 = [x + bar_width for x in br1]
+
+    fig = plt.figure(figsize =(12, 8))
+    plt.bar(br1, values_avg, width = bar_width, label = 'average', zorder = 3)
+    plt.bar(br2, values_LV, width = bar_width, label = 'left ventricle', zorder = 3)
+
+    plt.ylim((0.84,0.94))
+    plt.title("Performance of different models", fontsize=20)
+    plt.ylabel('DICE score', fontsize=15)
+    plt.legend()
+    plt.grid(axis = 'y', ls = '--', zorder = 0)
+    plt.xticks([r + bar_width/2 for r in range(len(labels))],
+        [l for l in labels], rotation = 0, fontsize = 15)
+
+    plt.savefig("barchart.jpeg")
+
+def plot_best_model_bar_chart():
+    '''Plots bar chart of model performance on different resolutions '''
+
+    data_avg = {'192_res': 0.8907, '384_res': 0.8939, '768_res': 0.8813}
+    data_LV = {'192_res': 0.9054, '384_res': 0.9181, '768_res': 0.9169}
+    labels = list(data_LV.keys())
+    values_LV = list(data_LV.values())
+    values_avg = list(data_avg.values())
+
+    bar_width = 0.33
+    br1 = np.arange(len(labels))
+    br2 = [x + bar_width for x in br1]
+
+    fig = plt.figure(figsize =(12, 8))
+    plt.bar(br1, values_avg, width = bar_width, label = 'average', zorder = 3)
+    plt.bar(br2, values_LV, width = bar_width, label = 'left ventricle', zorder = 3)
+
+    plt.ylim((0.85,0.95))
+    plt.title("Final model with different image resolutions", fontsize=20)
+    plt.ylabel('DICE score', fontsize=15)
+    plt.legend()
+    plt.grid(axis = 'y', ls = '--', zorder = 0)
+    plt.xticks([r + bar_width/2 for r in range(len(labels))],
+        [l for l in labels], rotation = 0, fontsize = 20)
+
+    plt.savefig("final_model_barchart.jpeg")
+
+
 if __name__ == "__main__":
 
     baseline_dict = load_model('Baseline')
@@ -62,5 +120,9 @@ if __name__ == "__main__":
     plt.ylabel("Loss")
     plt.legend()
     plt.show()  
+
+    plot_best_model_bar_chart()
+    plot_bar_chart()
+    plt.show()
 
         

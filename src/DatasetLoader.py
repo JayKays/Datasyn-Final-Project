@@ -109,7 +109,6 @@ def make_dataloaders(dataset, split, img_res = RESOLUTION, transform = TRANSFORM
     train/validation or train/val/test depending on split parameter'''
 
     bs = BATCH_SIZE
-    # bs = 12
 
     gt = Path.joinpath(BASE_PATH, dataset, 'train_gt')
     gray = Path.joinpath(BASE_PATH, dataset, 'train_gray')
@@ -122,12 +121,12 @@ def make_dataloaders(dataset, split, img_res = RESOLUTION, transform = TRANSFORM
 
         train_load = DataLoader(train_data, batch_size = bs, shuffle = True, num_workers = 4)
         valid_load = DataLoader(valid_data, batch_size = bs, shuffle = True, num_workers = 4)
-        test_load = DataLoader(test_data, batch_size = bs, shuffle = False, num_workers = 4)
+        test_load = DataLoader(test_data, batch_size = bs, shuffle = True, num_workers = 4)
 
         return train_load, valid_load, test_load
 
     elif type(split) == float and 0 <= split <= 1:
-
+        #Splits dataset in train/val (Was only used for testing on the camus resized set)
         train_data, valid_data = split_dataset(data, split)
 
         train_load = DataLoader(train_data, batch_size = bs, shuffle = True, num_workers = 4)
@@ -136,10 +135,11 @@ def make_dataloaders(dataset, split, img_res = RESOLUTION, transform = TRANSFORM
         return train_load, valid_load
 
     elif split == 'TEE':
-        return DataLoader(data, batch_size = bs, shuffle = False, num_workers=4)
+        #Special "split" for handling TEE dataloader
+        return DataLoader(data, batch_size = 4, shuffle = True, num_workers =4 )
 
     else:
-        raise (f"Training percentage = {split}, must be float between 0 and 1 or tuple of size 3 with proper subset sizes")
+        raise (f"Datasplit = {split}, should be float between 0 and 1 or tuple of size 3 with proper subset sizes")
 
 def make_TEE_dataloader(dataset, img_res = RESOLUTION):
     '''Loads the TEE dataset for testing'''

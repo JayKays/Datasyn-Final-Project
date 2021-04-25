@@ -16,7 +16,6 @@ from plotting import *
 from config import *
 
 
-
 def main ():
 
     bs = BATCH_SIZE
@@ -34,7 +33,7 @@ def main ():
     split = DATA_SPLIT
 
     #sets the matplotlib display backend (most likely not needed)
-    mp.use('TkAgg', force=True)
+    # mp.use('TkAgg', force=True)
 
     #load the training data
     # train_data, valid_data = make_train_dataloaders('CAMUS', 8/9)
@@ -55,7 +54,6 @@ def main ():
     #loss function and optimizer
     loss_fn = LOSS_FUNC
     opt = torch.optim.Adam(unet.parameters(), lr=learn_rate)
-    # opt = torch.optim.SGD(unet.parameters(), lr = learn_rate, momentum=0.99)
 
     #Loading from checkpoint
     start_epoch = 0
@@ -92,9 +90,6 @@ def main ():
         #Loads the best saved model under given name
         model_dict = load_model(model_name, best = True)
         unet.load_state_dict(model_dict["model"])
-
-        #Tests model on test set
-        test_data.dataset.transform = False
 
         test(unet, test_data)
 

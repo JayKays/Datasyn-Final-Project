@@ -29,6 +29,7 @@ def mhd_to_PIL(img_path, new_spacing = [0.154, 0.154]):
 
     return PIL_img
 
+
 def extract_TTE_to_tif(tte_dir, save_dir):
     '''Fetches all proper TTE mhd files and saves them in save directory as .tif format'''
     
@@ -82,11 +83,6 @@ def extract_TEE_with_gt(TEE_dir, save_dir):
         
         #Open and convert gt to 0,1,2
         gt = Image.open(gt_files[i]).convert('L')
-        # gt = Image.fromarray(gt.astype(np.uint8), 'L')
-
-        # #Rotate to match TTE
-        # img = img.rotate(180)
-        # gt = gt.rotate(180)
 
         #Save
         img.save(img_save_path)
@@ -97,6 +93,8 @@ def make_dir(dir_path):
     '''Create a diven directory if it doesn't exist'''
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
+
+
 
 if __name__ == "__main__":
     
@@ -123,9 +121,3 @@ if __name__ == "__main__":
 
         extract_TEE_with_gt(TEE_dir, TEE_save_dir)
     
-
-
-
-
-
-
