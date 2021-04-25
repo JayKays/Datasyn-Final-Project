@@ -9,7 +9,7 @@ from plotting import plot_segmentation
 from utils import to_cuda, load_model
 from evaluation import dice, class_dice
 from Unet2D_default import default_Unet2D
-from Unet2D import improved_Unet2D
+from Unet2D_final import improved_Unet2D
 from config import *
 
 
@@ -35,11 +35,12 @@ def test(model, dataset):
 
     #Result calculation over dataset
     acc = 0
+    test_data.dataset.transform = False
+
     class_dices = np.zeros(4)
     for x, y in test_data:
         with torch.no_grad():
             predb = model(to_cuda(x))
-
         dice_score = dice(predb, to_cuda(y))
         class_score = class_dice(predb, to_cuda(y))
 
@@ -58,22 +59,26 @@ def test(model, dataset):
     print(f'Class-wise DICE score: {np.round(class_dices, decimals = 4)}')
     print('-'*60)
 
+    # for i in range(len(test_data)):
     xb, yb = next(iter(test_data))
 
     with torch.no_grad():
             predb = model(to_cuda(xb))
-    plot_segmentation(xb, yb, predb, num_img=3)
+    plot_segmentation(xb, yb, predb, num_img=4)
     plt.show()
 
 
 if __name__ == "__main__":
 
-    if DATASET == 'TEE':
-        test_data = make_TEE_dataloader()
+    if DATASET != 'TTE':
+        test_data = make_TEE_dataloader(DATASET)
     else:
         _, _, test_data = make_dataloaders(DATASET, DATA_SPLIT, transform = False)
 
-    unet = default_Unet2D(1, 4)
+    if MODEL_NAME == 'Baseline':
+        unet = default_Unet2D(1, 4)
+    else:
+        unet = improved_Unet2D(1, 4)
 
     model_dict = load_model(MODEL_NAME, best = True)
 
