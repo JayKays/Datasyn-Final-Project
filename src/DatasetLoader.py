@@ -10,7 +10,7 @@ from config import *
 
 #load data from a folder
 class DatasetLoader(Dataset):
-    def __init__(self, gray_dir, gt_dir, pytorch=True, img_res = RESOLUTION, transform = TRANSFORM):
+    def __init__(self, gray_dir, gt_dir, pytorch=True, img_res = RESOLUTION, transform = TRANSFORM, rotate = False):
         super().__init__()
         
         # Loop through the files in red folder and combine, into a dictionary, the other bands
@@ -18,6 +18,7 @@ class DatasetLoader(Dataset):
         self.pytorch = pytorch
         self.res = img_res
         self.trans = transform
+        self.rotate = rotate
         
     def combine_files(self, gray_file: Path, gt_dir):
         
@@ -33,6 +34,11 @@ class DatasetLoader(Dataset):
     def open_as_array(self, idx, invert=False):
         #open ultrasound data
         raw_PIL = Image.open(self.files[idx]['gray']).resize((self.res, self.res))
+
+        #Used to rotate TEE data
+        if self.rotate:
+            raw_PIL = raw_PIL.rotate(180)
+
         raw_us = np.stack([np.array(raw_PIL),], axis=2)
 
         if self.trans:
@@ -47,8 +53,15 @@ class DatasetLoader(Dataset):
 
     def open_mask(self, idx, add_dims=False):
         #open mask file
-        raw_mask = np.array(Image.open(self.files[idx]['gt']).resize((self.res, self.res)))
+        raw_mask = Image.open(self.files[idx]['gt']).resize((self.res, self.res))
 
+        #TEE rotate and scaling
+        if self.rotate: 
+            raw_mask = raw_mask.rotate(180)
+            raw_mask = np.array(raw_mask)
+            raw_mask = np.round(raw_mask/127).astype(int)
+        else:
+            raw_mask = np.array(raw_mask)
         # if self.trans:
         #     raw_mask = TRANSFORMS(image=raw_mask)["image"]
         
@@ -95,7 +108,7 @@ def split_dataset(data, split):
     
     
 
-def make_dataloaders(dataset, split, img_res = RESOLUTION, transform = TRANSFORM):
+def make_dataloaders(dataset, split, img_res = RESOLUTION, transform = TRANSFORM, rotate = False):
     '''Makes dataset loaders for a diven dataset, either split into 
     train/validation or train/val/test depending on split parameter'''
 
@@ -105,7 +118,7 @@ def make_dataloaders(dataset, split, img_res = RESOLUTION, transform = TRANSFORM
     gt = Path.joinpath(BASE_PATH, dataset, 'train_gt')
     gray = Path.joinpath(BASE_PATH, dataset, 'train_gray')
 
-    data = DatasetLoader(gray, gt, img_res = img_res, transform = transform)
+    data = DatasetLoader(gray, gt, img_res = img_res, transform = transform, rotate = rotate)
 
     if type(split) == tuple and len(split) == 3 and sum(split) <= len(data):
         #Split dataset into training and validation
@@ -132,9 +145,9 @@ def make_dataloaders(dataset, split, img_res = RESOLUTION, transform = TRANSFORM
     else:
         raise (f"Training percentage = {split}, must be float between 0 and 1 or tuple of size 3 with proper subset sizes")
 
-def make_TEE_dataloader(img_res = RESOLUTION):
+def make_TEE_dataloader(dataset, img_res = RESOLUTION):
     '''Loads the TEE dataset for testing'''
 
-    TEE_data = make_dataloaders('TEE', 'TEE', img_res = img_res, transform = False)
+    TEE_data = make_dataloaders(dataset, 'TEE', img_res = img_res, transform = False, rotate = True)
 
     return TEE_data

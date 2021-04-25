@@ -17,20 +17,15 @@ def mhd_to_PIL(img_path, new_spacing = [0.154, 0.154]):
     #Loading as medimage.image
     img = image(img_path)
 
+    #Calculating new dimentions for isotropic pixel size
     spacing = img.spacing()
     dims = img.header['DimSize']
-    # print(spacing)
 
     new_x = np.round(spacing[0] * dims[0] / new_spacing[0]).astype(int)
     new_y = np.round(spacing[1] * dims[1] / new_spacing[1]).astype(int)
 
-    #Convertin to PIL
+    #Convertin to PIL, and reshaping to make isotropic
     PIL_img = Image.fromarray(img.imdata.astype(np.uint8)[:,:,0], 'L').resize((new_x, new_y))
-
-    # fig, ax = plt.subplots(1, 2, figsize=(5,10))
-    # ax[1].imshow(np.asarray(PIL_img))
-    # ax[0].imshow(img.imdata.astype(np.uint8)[:,:,0])
-    # plt.show()
 
     return PIL_img
 
@@ -86,13 +81,12 @@ def extract_TEE_with_gt(TEE_dir, save_dir):
         img = Image.open(image_files[i])
         
         #Open and convert gt to 0,1,2
-        gt = np.array(Image.open(gt_files[i]).convert('L'))
-        gt = np.round(gt/127.5)
-        gt = Image.fromarray(gt.astype(np.uint8), 'L')
+        gt = Image.open(gt_files[i]).convert('L')
+        # gt = Image.fromarray(gt.astype(np.uint8), 'L')
 
-        #Rotate to match TTE
-        img = img.rotate(180)
-        gt = gt.rotate(180)
+        # #Rotate to match TTE
+        # img = img.rotate(180)
+        # gt = gt.rotate(180)
 
         #Save
         img.save(img_save_path)
