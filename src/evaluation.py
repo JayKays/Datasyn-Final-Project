@@ -6,7 +6,7 @@ import torch
 def acc_metric(predb, yb):
     return (predb.argmax(dim=1) == to_cuda(yb)).float().mean()
 
-def class_dice(predb, yb, smooth = 1e-4):
+def class_dice(predb, yb, smooth = 1e-6):
     '''Return a tensor with average dice score per class over a batch'''
 
     num_classes = predb.shape[1]
@@ -23,9 +23,7 @@ def class_dice(predb, yb, smooth = 1e-4):
             class_pred = (pred == c).float()
             class_targ = (target == c).float()
 
-            # print(torch.count_nonzero(class_pred))
-
-            intersection = (class_pred * class_targ).sum() + smooth
+            intersection = (class_pred * class_targ).sum()
             card = class_targ.sum() + class_pred.sum() + smooth
 
             dice_score = 2*intersection/card
@@ -42,6 +40,16 @@ def dice(predb, yb, smooth = 1e-4):
     class_score = class_dice(predb, yb)
 
     return class_score[1:].mean()
+
+
+if __name__ == "__main__":
+
+    target = torch.tensor([[[1,1],[0,0]]])
+    pred  = torch.tensor([[[[0,0],[1,1]]]])
+    print(pred[0].argmax(dim = 0).view(-1))
+    print(target[0].view(-1))
+    print(pred.shape)
+    print(class_dice(pred, target))
 
 
             
